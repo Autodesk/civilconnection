@@ -37,6 +37,7 @@ The release numbers for the package correspond to the major release numbers of C
 * Civil 3D and Revit 2017 - CivilConnection 2017 - Autodesk2017.dll
 * Civil 3D and Revit 2018 - CivilConnection 2018 - Autodesk2018.dll
 * Civil 3D and Revit 2019 - CivilConnection 2019 - Autodesk2019.dll
+* Civil 3D and Revit 2020 - CivilConnection 2020 - Autodesk2020.dll
 
 ## License
 See [LICENSING.md](LICENSING.md)
