@@ -1,0 +1,5 @@
+﻿Copy the CivilPython.bundle folder and its content in:
+
+C:\ProgramData\Autodesk\ApplicationPlugins
+
+This will enable the Python and -Python commands adt the command line.

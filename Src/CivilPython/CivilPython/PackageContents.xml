@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ApplicationPackage SchemaVersion="1.0"
+                    AutodeskProduct="AutoCAD"
+                    ProductType="Application"
+                    Name="CivilPython">
+  <CompanyDetails Name="" Phone=" " Url="" Email="" />
+  <RuntimeRequirements SeriesMax="R24.0"
+                       SeriesMin="R20.1"
+                       Platform="Civil3D"
+                       OS="Win32|Win64" />
+  <Components>
+    <ComponentEntry AppName="CivilPython"
+                    Version="1.0"
+                    ModuleName="./Contents/Win/CivilPython.dll"
+                    AppDescription="Description for command module of CivilPython"
+                    LoadOnCommandInvocation="True" LoadOnRequest="True">
+      <Commands>
+        <Command Local="Python" Global="Python" />
+		    <Command Local="-python" Global="-python" />
+		    <Command Local="-replacesolid" Global="-replacesolid" />
+        <Command Local="-ExportLandFeatureLinesToXml" Global="-ExportLandFeatureLinesToXml" />
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>
