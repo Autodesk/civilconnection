@@ -1,7 +1,7 @@
 # CivilConnection and CivilPython
 CivilConnection is a Dynamo for Revit package for Autodesk® Revit and Autodesk® Civil 3D.
 
-CivilPython is a command for Civil 3D that enables the execution of Python scripts accessing AutoCAD and Civil 3D .NET API.
+CivilPython is a command for Autodesk® Civil 3D that enables the execution of Python scripts accessing AutoCAD and Civil 3D .NET APIs.
 
 ## CivilConnection Main Features
 Here are some features enabled by CivilConnection:
