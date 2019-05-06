@@ -1,0 +1,276 @@
+{
+  "Uuid": "3c9d0464-8643-5ffe-96e5-ab1769818209",
+  "IsCustomNode": false,
+  "Description": "",
+  "Name": "01_Export Solids to IFC_2.0",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "8c8e4b22ae5947579eaf683eb82e4fb8",
+      "Name": "Document",
+      "Type": "string",
+      "Value": "Bridge2018_Solids.dwg",
+      "Description": "Creates a string."
+    }
+  ],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "CivilConnection.CivilApplication.CivilApplication",
+      "Id": "f96cfadc02e043aaa45722bc95f7671b",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "e5b7882b85de4618ad162e3378fb6a6e",
+          "Name": "CivilApplication",
+          "Description": "CivilApplication",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Creates the connection with the running session of Civil 3D.\n\nCivilApplication.CivilApplication ( ): CivilApplication"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "CivilConnection.RevitUtils.ExportIFC@CivilConnection.CivilDocument,string",
+      "Id": "e41c198154d54c59be3ded0c225d447f",
+      "Inputs": [
+        {
+          "Id": "75c88809a1b9444981ca8db9b2d8ce08",
+          "Name": "civilDocument",
+          "Description": "The civil document.\n\nCivilDocument",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "f3d55383e2944963a6daf400ba82e6fd",
+          "Name": "desktopConnectorFolder",
+          "Description": "The Autodesk Desktop Connector folder for the project on the cloud environment (BIM 360, BIM 360 Team, Fusion 360).\n\nstring\nDefault value : \"\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "81e9d561bc7e485ca3976e7207e28c6e",
+          "Name": "IFCOrigin",
+          "Description": "var",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Exports the IFC file of the DWG in the folder of the Revit document with in local coordinates.\n\nRevitUtils.ExportIFC (civilDocument: CivilDocument, desktopConnectorFolder: string = \"\"): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "CivilConnection.CivilApplication.GetDocumentByName@string",
+      "Id": "851a6193e05446ad95d01b94fe7fa1ef",
+      "Inputs": [
+        {
+          "Id": "6d38b29aa91748f1979ee3384414b530",
+          "Name": "civilApplication",
+          "Description": "CivilConnection.CivilApplication",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "46c9b72ccdb5402a884725b0cdd10c3d",
+          "Name": "name",
+          "Description": "The Document name\n\nstring",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "144082de9e724023a3cb8926f2daf30c",
+          "Name": "CivilDocument",
+          "Description": "CivilDocument",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Returns the Civil Documents opened in Civil 3D with the same name.\n\nCivilApplication.GetDocumentByName (name: string): CivilDocument"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "Bridge2018_Solids.dwg",
+      "Id": "8c8e4b22ae5947579eaf683eb82e4fb8",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "2894d27a655b48f48d82583acf6c4126",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a string."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "e5b7882b85de4618ad162e3378fb6a6e",
+      "End": "6d38b29aa91748f1979ee3384414b530",
+      "Id": "3f6dd67266574e338cf5b5d8505d3440"
+    },
+    {
+      "Start": "144082de9e724023a3cb8926f2daf30c",
+      "End": "75c88809a1b9444981ca8db9b2d8ce08",
+      "Id": "ebfb977b17be46b58527dcc4c0c4cf74"
+    },
+    {
+      "Start": "2894d27a655b48f48d82583acf6c4126",
+      "End": "46c9b72ccdb5402a884725b0cdd10c3d",
+      "Id": "11194bae1ec34671a1e82812729b6553"
+    }
+  ],
+  "Dependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.0.2.6826",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "Id": "f96cfadc02e043aaa45722bc95f7671b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "CivilApplication.CivilApplication",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 377.4093983746975,
+        "Y": 292.92062755724726
+      },
+      {
+        "Id": "e41c198154d54c59be3ded0c225d447f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "RevitUtils.ExportIFC",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 1122.4093983746975,
+        "Y": 337.84935594463673
+      },
+      {
+        "Id": "851a6193e05446ad95d01b94fe7fa1ef",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Name": "CivilApplication.GetDocumentByName",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 705.4093983746975,
+        "Y": 337.84935594463673
+      },
+      {
+        "Id": "8c8e4b22ae5947579eaf683eb82e4fb8",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Name": "Document",
+        "ShowGeometry": true,
+        "Excluded": false,
+        "X": 407.09312396830654,
+        "Y": 408.7780843320262
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "d9e0aaf7bdb7469cb3244e79675ee995",
+        "Title": "Create IFC",
+        "Nodes": [
+          "e41c198154d54c59be3ded0c225d447f"
+        ],
+        "Left": 1112.4093983746975,
+        "Top": 291.84935594463673,
+        "Width": 345.0,
+        "Height": 165.0,
+        "FontSize": 30.0,
+        "InitialTop": 337.84935594463673,
+        "InitialHeight": 145.0,
+        "TextblockHeight": 36.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "623aca6fa7a04486a79cf17dca81be3b",
+        "Title": "Inputs",
+        "Nodes": [
+          "f96cfadc02e043aaa45722bc95f7671b",
+          "8c8e4b22ae5947579eaf683eb82e4fb8"
+        ],
+        "Left": 367.4093983746975,
+        "Top": 239.92062755724726,
+        "Width": 227.99999999999994,
+        "Height": 236.85745677477894,
+        "FontSize": 36.0,
+        "InitialTop": 292.92062755724726,
+        "InitialHeight": 213.85745677477894,
+        "TextblockHeight": 43.0,
+        "Background": "#FFFF7BAC"
+      },
+      {
+        "Id": "aa411da0f2d6401c95dd6face8884505",
+        "Title": "Get Document",
+        "Nodes": [
+          "851a6193e05446ad95d01b94fe7fa1ef"
+        ],
+        "Left": 695.4093983746975,
+        "Top": 284.84935594463673,
+        "Width": 317.0,
+        "Height": 172.0,
+        "FontSize": 36.0,
+        "InitialTop": 337.84935594463673,
+        "InitialHeight": 149.0,
+        "TextblockHeight": 43.0,
+        "Background": "#FFBB87C6"
+      }
+    ],
+    "X": -7.46974558174702,
+    "Y": 59.043836174662033,
+    "Zoom": 0.81390799167676031
+  }
+}

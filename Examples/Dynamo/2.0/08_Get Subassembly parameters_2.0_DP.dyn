@@ -1,0 +1,762 @@
+{
+    "Description": null, 
+    "View": {
+        "X": 396.06712001809967, 
+        "Camera": {
+            "EyeZ": 50.0, 
+            "LookZ": -58.0, 
+            "UpX": 0.0, 
+            "Name": "Background Preview", 
+            "EyeY": 24.0, 
+            "LookX": 12.0, 
+            "EyeX": -17.0, 
+            "LookY": -13.0, 
+            "UpY": 1.0, 
+            "UpZ": 0.0
+        }, 
+        "Annotations": [], 
+        "Zoom": 0.27787738114970734, 
+        "Dynamo": {
+            "HasRunWithoutCrash": true, 
+            "ScaleFactor": 1.0, 
+            "IsVisibleInDynamoLibrary": true, 
+            "RunPeriod": "1000", 
+            "Version": "2.0.2.6826", 
+            "RunType": "Automatic"
+        }, 
+        "NodeViews": [
+            {
+                "X": 153.35545575431638, 
+                "Y": 412.88743100868942, 
+                "Name": "CivilApplication.CivilApplication", 
+                "Id": "2541d64376714aa6be07e277e7650fc9", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 461.35545575431638, 
+                "Y": 453.88743100868942, 
+                "Name": "CivilApplication.GetDocumentByName", 
+                "Id": "44dd88378be04e219ba1c5a61e2d06c7", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 153.35545575431638, 
+                "Y": 520.88743100868942, 
+                "Name": "Document", 
+                "Id": "da71610a41bb4b44821b0c0070a34592", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": true, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 461.35545575431638, 
+                "Y": 587.88743100868942, 
+                "Name": "Corridor", 
+                "Id": "cb014b4b42fd41929181c9f4eadb0604", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": true, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 858.35545575431638, 
+                "Y": 507.88743100868942, 
+                "Name": "CivilDocument.GetCorridorByName", 
+                "Id": "3d009dc2d46f4d50a764d5b4f85244bf", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 1214.3554557543164, 
+                "Y": 507.88743100868942, 
+                "Name": "Corridor.Baselines", 
+                "Id": "de04ce04056744248f9293bcb9230275", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 1542.3554557543164, 
+                "Y": 507.88743100868942, 
+                "Name": "Baseline.GetBaselineRegions", 
+                "Id": "3461a9772cd44558871ff6d88b41de90", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 1913.3554557543164, 
+                "Y": 507.88743100868942, 
+                "Name": "BaselineRegion.Subassemblies", 
+                "Id": "5593fb16590d49c7a58c44c445d3eeae", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 2312.3554557543166, 
+                "Y": 546.88743100868942, 
+                "Name": "List.Clean", 
+                "Id": "6cb86b05e0684926b7228a976c1c6f32", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 1913.3554557543164, 
+                "Y": 616.10076434202279, 
+                "Name": "Code Block", 
+                "Id": "54ce0ef91311417e923239ac936f5c79", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 2670.3554557543166, 
+                "Y": 546.88743100868942, 
+                "Name": "Subassembly.Parameters", 
+                "Id": "7396456cda8d48c39a2cd6ca8659e9c8", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 3121.3554557543166, 
+                "Y": 546.88743100868942, 
+                "Name": "SubassemblyParameter.Name", 
+                "Id": "b0aeeda4bb704cb5a0ab81cd7222412e", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 3121.3554557543166, 
+                "Y": 654.88743100868942, 
+                "Name": "SubassemblyParameter.Value", 
+                "Id": "6ed225beb7b647838f0b8945846831b5", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 3121.3554557543166, 
+                "Y": 330.88743100868942, 
+                "Name": "SubassemblyParameter.Comment", 
+                "Id": "82434b68157f4807a2ce82a2b29c33a8", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 3121.3554557543166, 
+                "Y": 438.88743100868942, 
+                "Name": "SubassemblyParameter.Description", 
+                "Id": "addeaba8813d49acb858302fe4b71e6a", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 3121.3554557543166, 
+                "Y": 762.88743100868942, 
+                "Name": "SubassemblyParameter.Type", 
+                "Id": "b7bd58beabf64fdf8bab7791b4a98628", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }
+        ], 
+        "Y": 176.60929659884926
+    }, 
+    "Dependencies": [], 
+    "Name": "08_Get Subassembly parameters_2.0", 
+    "Nodes": [
+        {
+            "Description": "Creates a string.", 
+            "InputValue": "BridgeDesign_Demo_C3D.dwg", 
+            "NodeType": "StringInputNode", 
+            "Id": "da71610a41bb4b44821b0c0070a34592", 
+            "Inputs": [], 
+            "Replication": "Disabled", 
+            "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "String", 
+                    "Name": "", 
+                    "UsingDefaultValue": false, 
+                    "Id": "39098a5378cc4d8996627e1bd53e4e6b", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Creates a string.", 
+            "InputValue": "3162", 
+            "NodeType": "StringInputNode", 
+            "Id": "cb014b4b42fd41929181c9f4eadb0604", 
+            "Inputs": [], 
+            "Replication": "Disabled", 
+            "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "String", 
+                    "Name": "", 
+                    "UsingDefaultValue": false, 
+                    "Id": "314a0ffd27a04692b7c7d168d274ca8e", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Creates the connection with the running session of Civil 3D.\n\nCivilApplication.CivilApplication ( ): CivilApplication", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.CivilApplication.CivilApplication", 
+            "Inputs": [], 
+            "Id": "2541d64376714aa6be07e277e7650fc9", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilApplication", 
+                    "Name": "CivilApplication", 
+                    "UsingDefaultValue": false, 
+                    "Id": "2d5c8553a5fe4f06bd25c531fb15c5b7", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Returns the Civil Documents opened in Civil 3D with the same name.\n\nCivilApplication.GetDocumentByName (name: string): CivilDocument", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.CivilApplication.GetDocumentByName@string", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.CivilApplication", 
+                    "Name": "civilApplication", 
+                    "UsingDefaultValue": false, 
+                    "Id": "492c74f0da3948859155079720eaa31b", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }, 
+                {
+                    "Level": 2, 
+                    "Description": "The Document name\n\nstring", 
+                    "Name": "name", 
+                    "UsingDefaultValue": false, 
+                    "Id": "b597bb9e960e4290afb65d9db7220d20", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "44dd88378be04e219ba1c5a61e2d06c7", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilDocument", 
+                    "Name": "CivilDocument", 
+                    "UsingDefaultValue": false, 
+                    "Id": "511c84ace2f94a5aa755b8b665d183fa", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Get the corridor by name.\n\nCivilDocument.GetCorridorByName (name: string): Corridor", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.CivilDocument.GetCorridorByName@string", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.CivilDocument", 
+                    "Name": "civilDocument", 
+                    "UsingDefaultValue": false, 
+                    "Id": "81faeaee3a6e455190ea54e722cc19d7", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }, 
+                {
+                    "Level": 2, 
+                    "Description": "The corridor name.\n\nstring", 
+                    "Name": "name", 
+                    "UsingDefaultValue": false, 
+                    "Id": "2e36e591dc4f484db7cc7e461a1b169d", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "3d009dc2d46f4d50a764d5b4f85244bf", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "Corridor", 
+                    "Name": "Corridor", 
+                    "UsingDefaultValue": false, 
+                    "Id": "89ef962f1b8a4fd49a80f521e153e0b0", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the baselines.\n\nCorridor.Baselines: Baseline[]", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.Corridor.Baselines", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.Corridor", 
+                    "Name": "corridor", 
+                    "UsingDefaultValue": false, 
+                    "Id": "de512804b6ac4832813d55bfa361eca6", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "de04ce04056744248f9293bcb9230275", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "Baseline[]", 
+                    "Name": "Baseline[]", 
+                    "UsingDefaultValue": false, 
+                    "Id": "41ee7b99c9d3498dbc47d8f682fe1d33", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Returns the list of BaselineRegions in the Baseline.\n\nBaseline.GetBaselineRegions ( ): BaselineRegion[]", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.Baseline.GetBaselineRegions", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.Baseline", 
+                    "Name": "baseline", 
+                    "UsingDefaultValue": false, 
+                    "Id": "0ce91d278f7245278d41884ea9166439", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "3461a9772cd44558871ff6d88b41de90", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "A list of BaselineRegions.", 
+                    "Name": "BaselineRegion[]", 
+                    "UsingDefaultValue": false, 
+                    "Id": "c0a454804f914da9b9e659330a07526f", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the region subassemblies.\n\nBaselineRegion.Subassemblies: Subassembly[]", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.BaselineRegion.Subassemblies", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.BaselineRegion", 
+                    "Name": "baselineRegion", 
+                    "UsingDefaultValue": false, 
+                    "Id": "6574361573294734b3fdfb65688b3e27", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "5593fb16590d49c7a58c44c445d3eeae", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "Subassembly[]", 
+                    "Name": "Subassembly[]", 
+                    "UsingDefaultValue": false, 
+                    "Id": "8056bf2f8ca8480dbf49502b919d8fc5", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Cleans data of nulls and empty lists from a given list of arbitrary dimension\n\nList.Clean (list: var[]..[], preserveIndices: bool = true): var[]..[]", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "DSCore.List.Clean@var[]..[],bool", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "var[]..[]", 
+                    "Name": "list", 
+                    "UsingDefaultValue": false, 
+                    "Id": "a016d07366164fa7845a126d5d2c3bcf", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }, 
+                {
+                    "Level": 2, 
+                    "Description": "Provide an option to preserve the indices of the data such that non-trailing nulls may not be filtered out\n\nbool\nDefault value : true", 
+                    "Name": "preserveIndices", 
+                    "UsingDefaultValue": true, 
+                    "Id": "c913559f5bef402fa46457d8c1afc5be", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "6cb86b05e0684926b7228a976c1c6f32", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "A list cleaned of nulls and empty lists", 
+                    "Name": "var[]..[]", 
+                    "UsingDefaultValue": false, 
+                    "Id": "4801c5b79aa4442c9a455fb68b44f820", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Allows for DesignScript code to be authored directly", 
+            "NodeType": "CodeBlockNode", 
+            "Code": "false;", 
+            "Id": "54ce0ef91311417e923239ac936f5c79", 
+            "Inputs": [], 
+            "Replication": "Disabled", 
+            "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "Value of expression at line 1", 
+                    "Name": "", 
+                    "UsingDefaultValue": false, 
+                    "Id": "9064f53d55244a009775d83594333f8d", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the parameters.\n\nSubassembly.Parameters: SubassemblyParameter[]", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.Subassembly.Parameters", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.Subassembly", 
+                    "Name": "subassembly", 
+                    "UsingDefaultValue": false, 
+                    "Id": "c04d6694f5f74676818dfce2455b4a48", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "7396456cda8d48c39a2cd6ca8659e9c8", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "SubassemblyParameter[]", 
+                    "Name": "SubassemblyParameter[]", 
+                    "UsingDefaultValue": false, 
+                    "Id": "ae1d803581ff40c3ab4e58e58a0ee7da", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the name.\n\nSubassemblyParameter.Name: string", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.SubassemblyParameter.Name", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.SubassemblyParameter", 
+                    "Name": "subassemblyParameter", 
+                    "UsingDefaultValue": false, 
+                    "Id": "961ec8d260a5417f97a6a374a6ae582b", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "b0aeeda4bb704cb5a0ab81cd7222412e", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "string", 
+                    "Name": "string", 
+                    "UsingDefaultValue": false, 
+                    "Id": "bfb42fcfe8ad449f96ff19cea7ad3b1e", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the value.\n\nSubassemblyParameter.Value: var[]..[]", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.SubassemblyParameter.Value", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.SubassemblyParameter", 
+                    "Name": "subassemblyParameter", 
+                    "UsingDefaultValue": false, 
+                    "Id": "ef3a16759dd6441b87269914d41cfdc1", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "6ed225beb7b647838f0b8945846831b5", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "var[]..[]", 
+                    "Name": "var[]..[]", 
+                    "UsingDefaultValue": false, 
+                    "Id": "a24505e3668049878678c2246788cf23", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the Comment.\n\nSubassemblyParameter.Comment: string", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.SubassemblyParameter.Comment", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.SubassemblyParameter", 
+                    "Name": "subassemblyParameter", 
+                    "UsingDefaultValue": false, 
+                    "Id": "e64f859b612643baaee921bebc2c05e5", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "82434b68157f4807a2ce82a2b29c33a8", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "string", 
+                    "Name": "string", 
+                    "UsingDefaultValue": false, 
+                    "Id": "9ebeee56071c401a9ca47686460298ef", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the Description.\n\nSubassemblyParameter.Description: string", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.SubassemblyParameter.Description", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.SubassemblyParameter", 
+                    "Name": "subassemblyParameter", 
+                    "UsingDefaultValue": false, 
+                    "Id": "609fc5cf36044ccfba2182a367411f07", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "addeaba8813d49acb858302fe4b71e6a", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "string", 
+                    "Name": "string", 
+                    "UsingDefaultValue": false, 
+                    "Id": "123759e549624815a3ad98ab912a3f7d", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Gets the type.\n\nSubassemblyParameter.Type: SubassemblyParameterType", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.SubassemblyParameter.Type", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.SubassemblyParameter", 
+                    "Name": "subassemblyParameter", 
+                    "UsingDefaultValue": false, 
+                    "Id": "a1b18367a01f4f1c8aa02028ef5c2e30", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "b7bd58beabf64fdf8bab7791b4a98628", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "SubassemblyParameterType", 
+                    "Name": "SubassemblyParameterType", 
+                    "UsingDefaultValue": false, 
+                    "Id": "b56ff65aed274c1e8f62a0e50c5112c4", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }
+    ], 
+    "Inputs": [
+        {
+            "Description": "Creates a string.", 
+            "Value": "BridgeDesign_Demo_C3D.dwg", 
+            "Name": "Document", 
+            "Type": "string", 
+            "Id": "da71610a41bb4b44821b0c0070a34592"
+        }, 
+        {
+            "Description": "Creates a string.", 
+            "Value": "3162", 
+            "Name": "Corridor", 
+            "Type": "string", 
+            "Id": "cb014b4b42fd41929181c9f4eadb0604"
+        }
+    ], 
+    "Uuid": "f8f14385-87df-47eb-b8a9-d4f796eb4556", 
+    "Connectors": [
+        {
+            "Start": "2d5c8553a5fe4f06bd25c531fb15c5b7", 
+            "End": "492c74f0da3948859155079720eaa31b", 
+            "Id": "a60eb6767f834f2aa0305d5e55e9feb9"
+        }, 
+        {
+            "Start": "511c84ace2f94a5aa755b8b665d183fa", 
+            "End": "81faeaee3a6e455190ea54e722cc19d7", 
+            "Id": "be03f17bb11a431cbf8d1fcc68189c19"
+        }, 
+        {
+            "Start": "39098a5378cc4d8996627e1bd53e4e6b", 
+            "End": "b597bb9e960e4290afb65d9db7220d20", 
+            "Id": "21b1c117df3c4f98b079a3e98b6c9914"
+        }, 
+        {
+            "Start": "314a0ffd27a04692b7c7d168d274ca8e", 
+            "End": "2e36e591dc4f484db7cc7e461a1b169d", 
+            "Id": "b948b1b9e1dd4743800df4d58fbb0931"
+        }, 
+        {
+            "Start": "89ef962f1b8a4fd49a80f521e153e0b0", 
+            "End": "de512804b6ac4832813d55bfa361eca6", 
+            "Id": "c35591a08bdb4a179f99c6e0b0530a8c"
+        }, 
+        {
+            "Start": "41ee7b99c9d3498dbc47d8f682fe1d33", 
+            "End": "0ce91d278f7245278d41884ea9166439", 
+            "Id": "23431d4617f4447eb00c2cd9c318357e"
+        }, 
+        {
+            "Start": "c0a454804f914da9b9e659330a07526f", 
+            "End": "6574361573294734b3fdfb65688b3e27", 
+            "Id": "7c9e45b4153c4c91a8fd5b2ed2438c31"
+        }, 
+        {
+            "Start": "8056bf2f8ca8480dbf49502b919d8fc5", 
+            "End": "a016d07366164fa7845a126d5d2c3bcf", 
+            "Id": "8baba8cd08f44d279d0c00640c549b15"
+        }, 
+        {
+            "Start": "4801c5b79aa4442c9a455fb68b44f820", 
+            "End": "c04d6694f5f74676818dfce2455b4a48", 
+            "Id": "1362e29db78642b8b0227f0a050462cf"
+        }, 
+        {
+            "Start": "9064f53d55244a009775d83594333f8d", 
+            "End": "c913559f5bef402fa46457d8c1afc5be", 
+            "Id": "89f780f064ec4b05946363fe5e7ed187"
+        }, 
+        {
+            "Start": "ae1d803581ff40c3ab4e58e58a0ee7da", 
+            "End": "961ec8d260a5417f97a6a374a6ae582b", 
+            "Id": "02149c538c6d48b58d919fae86d3800e"
+        }, 
+        {
+            "Start": "ae1d803581ff40c3ab4e58e58a0ee7da", 
+            "End": "ef3a16759dd6441b87269914d41cfdc1", 
+            "Id": "7b0104e860d3475ca83a6ed8457b5edf"
+        }, 
+        {
+            "Start": "ae1d803581ff40c3ab4e58e58a0ee7da", 
+            "End": "609fc5cf36044ccfba2182a367411f07", 
+            "Id": "dc767581c64c4378b179993191150768"
+        }, 
+        {
+            "Start": "ae1d803581ff40c3ab4e58e58a0ee7da", 
+            "End": "e64f859b612643baaee921bebc2c05e5", 
+            "Id": "1a971d07fb0840ffa7e2048d8b02146a"
+        }, 
+        {
+            "Start": "ae1d803581ff40c3ab4e58e58a0ee7da", 
+            "End": "a1b18367a01f4f1c8aa02028ef5c2e30", 
+            "Id": "f9c6f468f6514269a70cc898db9c1106"
+        }
+    ], 
+    "IsCustomNode": false, 
+    "Bindings": [], 
+    "Outputs": [], 
+    "ElementResolver": {
+        "ResolutionMap": {}
+    }
+}

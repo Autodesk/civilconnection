@@ -1,0 +1,382 @@
+{
+    "Description": "", 
+    "View": {
+        "X": 106.61880484084259, 
+        "Camera": {
+            "EyeZ": 155.4237060546875, 
+            "LookZ": -164.10102844238281, 
+            "UpX": 0.11816988885402679, 
+            "Name": "Background Preview", 
+            "EyeY": 135.03001403808594, 
+            "LookX": 101.30880737304687, 
+            "EyeX": -96.790054321289063, 
+            "LookY": -91.4892578125, 
+            "UpY": 0.97437006235122681, 
+            "UpZ": -0.1914127916097641
+        }, 
+        "Annotations": [
+            {
+                "Top": 748.496834065082, 
+                "Title": "Inputs", 
+                "Nodes": [
+                    "f96cfadc02e043aaa45722bc95f7671b", 
+                    "9f7f8b67360b4c908c74e2ecbfec177f", 
+                    "a28f267a207641439b9d2528984df6e6", 
+                    "24ddf82b81e74aa9a15fe158947a408d"
+                ], 
+                "InitialHeight": 509.84199833613286, 
+                "Id": "86b01671d67a48e7866c736caa6635aa", 
+                "TextblockHeight": 43.0, 
+                "Left": 34.348895006174075, 
+                "Width": 303.86647196683242, 
+                "FontSize": 36.0, 
+                "Height": 550.72994180419767, 
+                "Background": "#FFFF7BAC", 
+                "InitialTop": 801.496834065082
+            }, 
+            {
+                "Top": 749.53520650180758, 
+                "Title": "Update Revit Elements", 
+                "Nodes": [
+                    "78c09bc2f2c4487daa32313c58695cce", 
+                    "a47a5b6b9e664d9bb5022e20c2d24b4e"
+                ], 
+                "InitialHeight": 222.73564885150972, 
+                "Id": "fe7250c88cda472190e6e9a60a92e9ff", 
+                "TextblockHeight": 43.0, 
+                "Left": 367.91539574657372, 
+                "Width": 684.25622332210355, 
+                "FontSize": 36.0, 
+                "Height": 275.73564885150972, 
+                "Background": "#FFC1D676", 
+                "InitialTop": 802.53520650180758
+            }
+        ], 
+        "Zoom": 0.70891443836002477, 
+        "Dynamo": {
+            "HasRunWithoutCrash": false, 
+            "ScaleFactor": 1.0, 
+            "IsVisibleInDynamoLibrary": true, 
+            "RunPeriod": "1000", 
+            "Version": "2.0.2.6826", 
+            "RunType": "Manual"
+        }, 
+        "NodeViews": [
+            {
+                "X": 44.348895006174075, 
+                "Y": 801.496834065082, 
+                "Name": "CivilApplication.CivilApplication", 
+                "Id": "f96cfadc02e043aaa45722bc95f7671b", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 779.17161906867727, 
+                "Y": 880.2708553533173, 
+                "Name": "RevitUtils.UpdateObjects", 
+                "Id": "78c09bc2f2c4487daa32313c58695cce", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 377.91539574657372, 
+                "Y": 802.53520650180758, 
+                "Name": "CivilApplication.GetDocumentByName", 
+                "Id": "a47a5b6b9e664d9bb5022e20c2d24b4e", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": false, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 68.559861258100568, 
+                "Y": 912.2531520640938, 
+                "Name": "Document", 
+                "Id": "9f7f8b67360b4c908c74e2ecbfec177f", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": true, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 70.2153669730065, 
+                "Y": 1026.4703160208264, 
+                "Name": "Select Model Elements", 
+                "Id": "a28f267a207641439b9d2528984df6e6", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": true, 
+                "IsSetAsOutput": false
+            }, 
+            {
+                "X": 76.621278596145942, 
+                "Y": 1231.2267758692797, 
+                "Name": "Normalized", 
+                "Id": "24ddf82b81e74aa9a15fe158947a408d", 
+                "ShowGeometry": true, 
+                "Excluded": false, 
+                "IsSetAsInput": true, 
+                "IsSetAsOutput": false
+            }
+        ], 
+        "Y": -347.25866860130827
+    }, 
+    "Dependencies": [], 
+    "Name": "04_Update Families_2.0", 
+    "Nodes": [
+        {
+            "Description": "Creates a string.", 
+            "InputValue": "Bridge2018.dwg", 
+            "NodeType": "StringInputNode", 
+            "Id": "9f7f8b67360b4c908c74e2ecbfec177f", 
+            "Inputs": [], 
+            "Replication": "Disabled", 
+            "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "String", 
+                    "Name": "", 
+                    "UsingDefaultValue": false, 
+                    "Id": "3460e9370319476c8b5e04bf02a5c97b", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Selection between a true and false.", 
+            "InputValue": false, 
+            "NodeType": "BooleanInputNode", 
+            "Id": "24ddf82b81e74aa9a15fe158947a408d", 
+            "Inputs": [], 
+            "Replication": "Disabled", 
+            "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "Boolean", 
+                    "Name": "", 
+                    "UsingDefaultValue": false, 
+                    "Id": "e853ddfda91d49ea843277614dfa3007", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Creates the connection with the running session of Civil 3D.\n\nCivilApplication.CivilApplication ( ): CivilApplication", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.CivilApplication.CivilApplication", 
+            "Inputs": [], 
+            "Id": "f96cfadc02e043aaa45722bc95f7671b", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilApplication", 
+                    "Name": "CivilApplication", 
+                    "UsingDefaultValue": false, 
+                    "Id": "f9ee5b9ad1f449df89bc7f38941cfe64", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Updates the location and the linear coordinate system parameters of a collection of Revit Elements.\n\nRevitUtils.UpdateObjects (civilDocument: CivilDocument, elements: Element[], normalized: bool = false): Element[]", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.RevitUtils.UpdateObjects@CivilConnection.CivilDocument,Revit.Elements.Element[],bool", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "The civil document.\n\nCivilDocument", 
+                    "Name": "civilDocument", 
+                    "UsingDefaultValue": false, 
+                    "Id": "48be3f6d6ab543d3adf263fc1036bc4d", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }, 
+                {
+                    "Level": 2, 
+                    "Description": "A collection of elements.\n\nElement[]", 
+                    "Name": "elements", 
+                    "UsingDefaultValue": false, 
+                    "Id": "b4ce908ef8c24a1696e637a773530a7c", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }, 
+                {
+                    "Level": 2, 
+                    "Description": "If true it will keep the same proportion along the featureline rather than the exact station.\n\nbool\nDefault value : false", 
+                    "Name": "normalized", 
+                    "UsingDefaultValue": true, 
+                    "Id": "174e72c6a6b641f8a2363c2950b04c5a", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "78c09bc2f2c4487daa32313c58695cce", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "Element[]", 
+                    "Name": "Element[]", 
+                    "UsingDefaultValue": false, 
+                    "Id": "da35b5b1571e478493b4a76ec8fac558", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "Description": "Returns the Civil Documents opened in Civil 3D with the same name.\n\nCivilApplication.GetDocumentByName (name: string): CivilDocument", 
+            "NodeType": "FunctionNode", 
+            "FunctionSignature": "CivilConnection.CivilApplication.GetDocumentByName@string", 
+            "Inputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilConnection.CivilApplication", 
+                    "Name": "civilApplication", 
+                    "UsingDefaultValue": false, 
+                    "Id": "0b2c6a2c54b546bfa30bf6e528e9bcfe", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }, 
+                {
+                    "Level": 2, 
+                    "Description": "The Document name\n\nstring", 
+                    "Name": "name", 
+                    "UsingDefaultValue": false, 
+                    "Id": "a9a657369bcd4c40a3cb65067e62bb37", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ], 
+            "Id": "a47a5b6b9e664d9bb5022e20c2d24b4e", 
+            "Replication": "Auto", 
+            "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "CivilDocument", 
+                    "Name": "CivilDocument", 
+                    "UsingDefaultValue": false, 
+                    "Id": "58dc95eebfa44a98abc0d8cb42de4a79", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }, 
+        {
+            "NodeType": "ExtensionNode", 
+            "Id": "a28f267a207641439b9d2528984df6e6", 
+            "Inputs": [], 
+            "Replication": "Disabled", 
+            "InstanceId": [
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f22", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f86", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f87", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f88", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f89", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f8a", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f8b", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f8c", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f8d", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f8e", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f8f", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f90", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f91", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f92", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f93", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f94", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f95", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f96", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f97", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f98", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f99", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f9a", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f9b", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f9c", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f9d", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f9e", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001f9f", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001fa0", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001fa1", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001fa2", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001fa3", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001fa4", 
+                "4321af04-a5fb-4a59-b35e-c66537340453-00001fa5"
+            ], 
+            "ConcreteType": "Dynamo.Nodes.DSModelElementsSelection, DSRevitNodesUI", 
+            "Outputs": [
+                {
+                    "Level": 2, 
+                    "Description": "The selected elements.", 
+                    "Name": "Elements", 
+                    "UsingDefaultValue": false, 
+                    "Id": "561e561c25cf4ee395baba7265cd6736", 
+                    "KeepListStructure": false, 
+                    "UseLevels": false
+                }
+            ]
+        }
+    ], 
+    "Inputs": [
+        {
+            "Description": "Creates a string.", 
+            "Value": "Bridge2018.dwg", 
+            "Name": "Document", 
+            "Type": "string", 
+            "Id": "9f7f8b67360b4c908c74e2ecbfec177f"
+        }, 
+        {
+            "Description": "Selection between a true and false.", 
+            "Value": "false", 
+            "Name": "Normalized", 
+            "Type": "boolean", 
+            "Id": "24ddf82b81e74aa9a15fe158947a408d"
+        }
+    ], 
+    "Uuid": "3c9d0464-8643-5ffe-96e5-ab1769818209", 
+    "Connectors": [
+        {
+            "Start": "f9ee5b9ad1f449df89bc7f38941cfe64", 
+            "End": "0b2c6a2c54b546bfa30bf6e528e9bcfe", 
+            "Id": "d2c6e5eafc07436a8f623db5de4585a6"
+        }, 
+        {
+            "Start": "58dc95eebfa44a98abc0d8cb42de4a79", 
+            "End": "48be3f6d6ab543d3adf263fc1036bc4d", 
+            "Id": "63adec02560f47ce80cf9e88879b9337"
+        }, 
+        {
+            "Start": "3460e9370319476c8b5e04bf02a5c97b", 
+            "End": "a9a657369bcd4c40a3cb65067e62bb37", 
+            "Id": "41e75cde34fb42e5a3d141927641d7e2"
+        }, 
+        {
+            "Start": "561e561c25cf4ee395baba7265cd6736", 
+            "End": "b4ce908ef8c24a1696e637a773530a7c", 
+            "Id": "dec919690ee545c2ad85a15bfab2fc01"
+        }, 
+        {
+            "Start": "e853ddfda91d49ea843277614dfa3007", 
+            "End": "174e72c6a6b641f8a2363c2950b04c5a", 
+            "Id": "cabacc39788e40a1ac51a1debe56a249"
+        }
+    ], 
+    "IsCustomNode": false, 
+    "Bindings": [], 
+    "Outputs": [], 
+    "ElementResolver": {
+        "ResolutionMap": {}
+    }
+}
