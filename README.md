@@ -27,7 +27,7 @@ Here are some features enabled by CivilPython:
 * CivilPython runs for Civil 3D 2016 onward.
 
 ## How to use
-See ./doc/Linear Structures User Guide.pdf
+See ./Doc/Linear Structures Workflow Guide.pdf
 
 ## Release
 The release numbers for the package correspond to the major release numbers of Civil 3D and Revit it will run against
