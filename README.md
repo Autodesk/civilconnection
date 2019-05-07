@@ -28,6 +28,7 @@ Here are some features enabled by CivilPython:
 
 ## How to use
 See ./Doc/Linear Structures Workflow Guide.pdf
+
 In ./Compiled there are the releases of the CivilConnection Dynamo package as well as the CivilPython.
 
 ## Release
