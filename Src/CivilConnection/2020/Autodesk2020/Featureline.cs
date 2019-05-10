@@ -294,13 +294,13 @@ namespace CivilConnection
                 {
                     output = pc.CoordinateSystemAtParameter(pc.ParameterAtPoint(p));
 
-                    output = CoordinateSystem.ByOriginVectors(output.Origin, cs.YAxis.Cross(Vector.ZAxis()), cs.YAxis, Vector.ZAxis());
+                    output = CoordinateSystem.ByOriginVectors(output.Origin, output.YAxis.Cross(Vector.ZAxis()), output.YAxis, Vector.ZAxis());
 
                     if (vertical)
                     {
                         output = CoordinateSystem.ByOriginVectors(output.Origin,
-                        Vector.ByCoordinates(cs.XAxis.X, cs.XAxis.Y, 0, true),
-                        Vector.ByCoordinates(cs.YAxis.X, cs.YAxis.Y, 0, true),
+                        Vector.ByCoordinates(output.XAxis.X, output.XAxis.Y, 0, true),
+                        Vector.ByCoordinates(output.YAxis.X, output.YAxis.Y, 0, true),
                         Vector.ZAxis());
                     }
                 }
