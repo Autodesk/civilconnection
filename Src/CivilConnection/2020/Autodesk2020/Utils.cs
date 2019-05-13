@@ -206,10 +206,16 @@ namespace CivilConnection
             AcadText a = ms.AddText(text, vlist, height);
             a.Layer = layer;
 
-            RotateByVector(doc, a.Handle, cs.XAxis);
-            var b = a.Copy();
+            Vector normal = Vector.ZAxis().Cross(cs.ZAxis).Normalized();
 
-            Rotate3DByPlane(doc, b.ObjectID, cs.ZXPlane);
+            var p1 = new double[] { point.X, point.Y, point.Z };
+            var p2 = new double[] { point.X + normal.X, point.Y + normal.Y, point.Z + normal.Z };
+
+            double rotation = Vector.ZAxis().AngleAboutAxis(cs.ZAxis, normal);
+
+            a.Rotate3D(p1, p2, DegToRad(rotation));
+
+            normal.Dispose();
 
             Utils.Log(string.Format("Utils.AddText completed.", ""));
 
