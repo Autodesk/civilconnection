@@ -11,27 +11,37 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Land;
-using Autodesk.AECC.Interop.Roadway;
-using Autodesk.AECC.Interop.UiRoadway;
-using Autodesk.AutoCAD.Interop.Common;
-using Autodesk.DesignScript.Geometry;
-using Autodesk.DesignScript.Runtime;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Windows.Forms;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using System.IO;
 using System.Xml;
+using System.Windows.Forms;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.Land;
+using Autodesk.AECC.Interop.UiLand;
+using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
 
 namespace CivilConnection
 {
     /// <summary>
     /// Collection of utilities.
     /// </summary>
-    [IsVisibleInDynamoLibrary(false)]
-    public class Utils
+    [SupressImportIntoVM()]
+    internal class Utils
     {
         #region PRIVATE PROPERTIES
 
@@ -55,6 +65,8 @@ namespace CivilConnection
 
         #region PUBLIC METHODS
 
+
+        
 
         /// <summary>
         /// Feets to mm.
@@ -206,16 +218,31 @@ namespace CivilConnection
             AcadText a = ms.AddText(text, vlist, height);
             a.Layer = layer;
 
-            Vector normal = Vector.ZAxis().Cross(cs.ZAxis).Normalized();
+            double rotationZ = 0;
+            double rotationX = 0;
 
-            var p1 = new double[] { point.X, point.Y, point.Z };
-            var p2 = new double[] { point.X + normal.X, point.Y + normal.Y, point.Z + normal.Z };
+            Vector prX = Vector.ByCoordinates(cs.XAxis.X, cs.XAxis.Y, 0).Normalized();
+            Vector normalZ = Vector.ZAxis().Cross(cs.ZAxis).Normalized();
 
-            double rotation = Vector.ZAxis().AngleAboutAxis(cs.ZAxis, normal);
+            rotationZ = Vector.ZAxis().AngleAboutAxis(cs.ZAxis, normalZ);
+            rotationX = Vector.XAxis().AngleAboutAxis(prX, Vector.ZAxis());
 
-            a.Rotate3D(p1, p2, DegToRad(rotation));
+            if (rotationX != 0)
+            {
+                Utils.Log(string.Format("Rotation X: {0}", rotationX));
+                var p1 = new double[] { point.X, point.Y, point.Z + 1 };
+                a.Rotate3D(vlist, p1, DegToRad(rotationX));
+            }
 
-            normal.Dispose();
+            if (rotationZ != 0)
+            {
+                Utils.Log(string.Format("Rotation Z: {0}", rotationZ));
+                var p1 = new double[] { point.X + normalZ.X, point.Y + normalZ.Y, point.Z + normalZ.Z };
+                a.Rotate3D(vlist, p1, DegToRad(rotationZ));
+            }
+
+            prX.Dispose();
+            normalZ.Dispose();
 
             Utils.Log(string.Format("Utils.AddText completed.", ""));
 
@@ -1667,9 +1694,7 @@ namespace CivilConnection
             while (!File.Exists(landxml))  // 1.1.0
             {
                 // HACK: wait until the file is ready
-#pragma warning disable CS0219 // The variable 'i' is assigned but its value is never used
                 int i = 0;
-#pragma warning restore CS0219 // The variable 'i' is assigned but its value is never used
             }
 
             Utils.Log(string.Format("Utils.DumpLandXML completed.", ""));
