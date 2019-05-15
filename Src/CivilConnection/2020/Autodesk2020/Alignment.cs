@@ -11,11 +11,25 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Land;
-using Autodesk.DesignScript.Geometry;
-using Autodesk.DesignScript.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.Land;
+using Autodesk.AECC.Interop.UiLand;
+using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
 
 namespace CivilConnection
 {
@@ -58,6 +72,30 @@ namespace CivilConnection
         /// The end.
         /// </value>
         public double End { get { return _alignment.EndingStation; } }
+
+        /// <summary>
+        /// Gets the stations of the geometry points.
+        /// </summary>
+        /// <value>
+        /// The GeometryStations.
+        /// </value>
+        public double[] GeometryStations { get { return _alignment.GetStations(AeccStationType.aeccGeometryPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray(); } }
+
+        /// <summary>
+        /// Gets the stations of the points of intersection.
+        /// </summary>
+        /// <value>
+        /// The PIStations.
+        /// </value>
+        public double[] PIStations { get { return _alignment.GetStations(AeccStationType.aeccPIPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray(); } }
+
+        /// <summary>
+        /// Gets the stations of the points of superelevation transition.
+        /// </summary>
+        /// <value>
+        /// The SuperTransStations.
+        /// </value>
+        public double[] SuperTransStations { get { return _alignment.GetStations(AeccStationType.aeccSuperTransPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray(); } }
 
         #endregion
 
@@ -556,6 +594,46 @@ namespace CivilConnection
             ((AeccAlignment)this.InternalElement).StationOffset(point.X, point.Y, out station, out offset);
 
             return new Dictionary<string, object>() { {"Station", station}, {"Offset", offset}, {"Elevation", point.Z}};
+        }
+
+        /// <summary>
+        /// Returns a CoordinateSystem along the Alignment at the specified station.
+        /// </summary>
+        /// <param name="station">The station value.</param>
+        /// <param name="offset">The offset value.</param>
+        /// <param name="elevation">The elevation value.</param>
+        /// <returns></returns>
+        public CoordinateSystem CoordinateSystemByStation(double station, double offset=0, double elevation=0)
+        {
+            Utils.Log("Alignment.CoordinateSystemByStation Started...");
+
+            double northing = 0;
+            double easting = 0;
+            double northingX = 0;
+            double eastingX = 0;
+
+            this._alignment.PointLocation(station, offset, out easting, out northing);
+
+            Point point = Point.ByCoordinates(easting, northing, elevation);
+
+            this._alignment.PointLocation(station, offset + 1, out eastingX, out northingX);
+
+            Point pointX = Point.ByCoordinates(eastingX, northingX, elevation);
+
+            Vector x = Vector.ByTwoPoints(point, pointX).Normalized();
+
+            Vector y = Vector.ZAxis().Cross(x).Normalized();
+
+            CoordinateSystem cs = CoordinateSystem.ByOriginVectors(point, x, y);
+
+            point.Dispose();
+            pointX.Dispose();
+            x.Dispose();
+            y.Dispose();
+
+            Utils.Log("Alignment.CoordinateSystemByStation Completed.");
+
+            return cs;
         }
 
         /// <summary>

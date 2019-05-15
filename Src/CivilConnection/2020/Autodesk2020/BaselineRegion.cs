@@ -11,11 +11,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Roadway;
-using Autodesk.DesignScript.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
 
 namespace CivilConnection
 {
@@ -169,6 +181,8 @@ namespace CivilConnection
                 {
                     double station = Math.Round(stations[stationCounter], 5);
 
+                    Utils.Log(string.Format("AppliedAssembly Station {0} started...", station));
+
                     IList<IList<AppliedSubassemblyShape>> a_list = new List<IList<AppliedSubassemblyShape>>();
 
                     // int subCounter = 0;
@@ -177,18 +191,24 @@ namespace CivilConnection
 
                     foreach (var group in coll)
                     {
+                        Utils.Log(string.Format("AssemblyGroup started...", ""));
+
                         foreach (AeccAppliedSubassembly s in group)
-                        {
+                        {                            
                             string handle = s.SubassemblyDbEntity.Handle;
 
                             IList<AppliedSubassemblyShape> s_list = new List<AppliedSubassemblyShape>();
 
                             string subname = s.SubassemblyDbEntity.DisplayName;
 
+                            Utils.Log(string.Format("AppliedSubassembly {0} started...", subname));
+
                             int counter = 0;
 
                             foreach (AeccCalculatedShape cs in s.CalculatedShapes)
                             {
+                                Utils.Log(string.Format("CalculatedShape started...", ""));
+
                                 var codes = cs.CorridorCodes.Cast<string>().ToList();
 
                                 string name = string.Join("_", this._baseline.CorridorName, this._baseline.Index, this.Index, this._assembly, subname, handle, counter);  // verify the names
@@ -199,10 +219,14 @@ namespace CivilConnection
 
                                 foreach (AeccCalculatedLink cl in cs.CalculatedLinks)
                                 {
+                                    //Utils.Log(string.Format("CalculatedLink started...", ""));
+
                                     // IList<Point> pts = new List<Point>();
 
                                     foreach (AeccCalculatedPoint cp in cl.CalculatedPoints)
                                     {
+                                        //Utils.Log(string.Format("CalculatedPoint started...", ""));
+
                                         var soe = cp.GetStationOffsetElevationToBaseline();
 
                                         var pt = this._baseline._baseline.StationOffsetElevationToXYZ(soe);
@@ -213,7 +237,11 @@ namespace CivilConnection
                                         {
                                             pts.Add(p); 
                                         }
+
+                                        //Utils.Log(string.Format("CalculatedPoint completed.", ""));
                                     }
+
+                                    //Utils.Log(string.Format("CalculatedLink completed.", ""));
                                 }
 
                                 PolyCurve pro = null;
@@ -235,17 +263,25 @@ namespace CivilConnection
 
                                     ++counter; 
                                 }
+
+                                Utils.Log(string.Format("CalculatedShape completed.", ""));
                             }
 
                             a_list.Add(s_list);
 
                             // ++subCounter;
-                        } 
+
+                            Utils.Log(string.Format("AppliedSubassembly completed.", ""));
+                        }
+
+                        Utils.Log(string.Format("AppliedAssembly completed.", ""));
                     }
 
                     this._shapes.Add(a_list);
 
                     ++stationCounter;
+
+                    Utils.Log(string.Format("AssemblyGroup completed.", ""));
                 }
 
                 //return _shapes.Select(a => a.Select(s => s.Select(sh => sh.Geometry).ToList()).ToList()).ToList();
