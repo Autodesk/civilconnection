@@ -11,12 +11,30 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Land;
-using Autodesk.DesignScript.Geometry;
-using Autodesk.DesignScript.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using System.IO;
+using System.Xml;
+using System.Windows.Forms;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.Land;
+using Autodesk.AECC.Interop.UiLand;
+using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
+using Autodesk.DesignScript.Interfaces;
 
 namespace CivilConnection
 {
@@ -245,7 +263,18 @@ namespace CivilConnection
                 station = this.End;
             }
 
+            if (station < this.Start || station > this.End)
+            {
+                var message = "The Station value is not compatible with the Featureline.";
+
+                Utils.Log(string.Format("ERROR: {0}", message));
+
+                return null;
+            }
+
             cs = this._baseline.CoordinateSystemByStation(station);
+
+            Utils.Log(string.Format("CoordinateSystem: {0}", cs));
 
             if (cs != null)
             {
@@ -256,22 +285,37 @@ namespace CivilConnection
                 Point p = null;
                 double d = double.MaxValue;
 
-                // Get the closest point on the Feature Line
-                foreach (var result in pc.Intersect(plane))
+                try
                 {
-                    if (result is Point)
+                    var intersections = pc.Intersect(plane);
+
+                    Utils.Log(string.Format("Intersections: {0}", intersections.Length));
+
+                    // Get the closest point on the Feature Line
+                    foreach (var result in intersections)
                     {
-                        Point r = result as Point;
-
-                        double dist = cs.Origin.DistanceTo(r);
-
-                        if (dist < d)
+                        if (result is Point)
                         {
-                            p = r;
-                            d = dist;
+                            Point r = result as Point;
+
+                            double dist = cs.Origin.DistanceTo(r);
+
+                            if (dist < d)
+                            {
+                                p = r;
+                                d = dist;
+                            }
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Utils.Log(string.Format("ERROR: {0}", ex.Message));
+
+                    throw new Exception(ex.Message);
+                }
+
+                Utils.Log(string.Format("Distance: {0}", d));
 
                 // 20190415  -- START
                 if (p == null)
@@ -290,6 +334,8 @@ namespace CivilConnection
 
                 // 20190415  -- END
 
+                Utils.Log(string.Format("Point: {0}", p));
+
                 if (null != p)
                 {
                     output = pc.CoordinateSystemAtParameter(pc.ParameterAtPoint(p));
@@ -304,27 +350,27 @@ namespace CivilConnection
                         Vector.ZAxis());
                     }
                 }
-                else 
+                else
                 {
                     Utils.Log(string.Format("ERROR: Point is null.", ""));
                 }
 
                 Utils.Log(string.Format("Featureline.CoordinateSystemByStation completed.", ""));
 
-                // plane.Dispose();
-                // pc.Dispose();
-                // p.Dispose();
+                //plane.Dispose();
+                //pc.Dispose();
+                //p.Dispose();
             }
             else
             {
-                var message = "The Station value is not compatibile with the Featureline.";
+                var message = "The Station value is not compatible with the Featureline.";
 
                 Utils.Log(string.Format("ERROR: {0}", message));
 
                 throw new Exception(message);
             }
 
-            // cs.Dispose();
+            //cs.Dispose();
 
             return output;
         }
@@ -378,7 +424,7 @@ namespace CivilConnection
         /// </summary>
         /// <param name="point">The point.</param>
         /// <returns></returns>
-        [MultiReturn(new string[] {"Station", "Offset", "Elevation"})]
+        [MultiReturn(new string[] { "Station", "Offset", "Elevation" })]
         public Dictionary<string, object> GetStationOffsetElevationByPoint(Point point)
         {
             Utils.Log(string.Format("Featureline.GetStationOffsetElevationByPoint started...", ""));
@@ -468,7 +514,135 @@ namespace CivilConnection
 
                 // 20190205 -- END
 
+                #region UNDER REVIEW
+                //Dictionary<double, Point> cpts = new Dictionary<double, Point>();
+
+                //foreach (Curve c in this._polycurve.Curves())
+                //{
+                //    start = c.PointAtParameter(0);
+                //    end = c.PointAtParameter(1);
+
+                //    start = Point.ByCoordinates(start.X, start.Y, 0);
+                //    end = Point.ByCoordinates(end.X, end.Y, 0);
+
+                //    Point q = Point.ByCoordinates(point.X, point.Y, 0);
+
+                //    // Utils.Log(string.Format("Curve Start: {0} End: {1}", start, end));
+
+                //    dir = Vector.ByTwoPoints(start, end).Normalized();
+
+                //    test = null;
+
+                //    ortho = null;
+
+                //    if (start.DistanceTo(q) > 0)
+                //    {
+                //        test = Vector.ByTwoPoints(start, q);
+
+                //        ortho = start.Translate(dir, test.Dot(dir)) as Point;
+                //    }
+                //    else
+                //    {
+                //        test = Vector.ByTwoPoints(end, q);
+
+                //        ortho = end.Translate(dir.Reverse(), test.Dot(dir)) as Point;
+                //    }
+
+                //    if (ortho != null)
+                //    {
+                //        l = Line.ByStartPointEndPoint(start, end);
+
+                //        double par = l.ParameterAtPoint(ortho);
+
+                //        if (par >= 0 && par <= 1)
+                //        {
+                //            double orStation = 0;
+                //            double orOffset = 0;
+
+                //            alignment.StationOffset(ortho.X, ortho.Y, out orStation, out orOffset);
+
+                //            CoordinateSystem cs = this.CoordinateSystemByStation(orStation, false).Inverse();
+
+                //            Point result = point.Transform(cs) as Point;
+
+                //            //Utils.Log(string.Format("OrStation: {0}", orStation));
+
+                //            cpts[orStation] = result;
+                //        }
+                //    }
+                //    else
+                //    {
+                //        Utils.Log(string.Format("No projection was found", ""));
+                //    }
+                //}
+
+                //double error = double.MaxValue;
+
+                //foreach (double s in cpts.Keys)
+                //{
+                //    double margin = cpts[s].Y;
+
+                //    if (margin < error)
+                //    {
+                //        station = s;
+                //        offset = cpts[s].X;
+                //        elevation = cpts[s].Z;
+                //        error = margin;
+                //    }
+                //}
+                #endregion
+
                 Utils.Log(string.Format("Final Margin: {0}", error));
+
+                #region TEST CODE
+                //Point projection = this._polycurve.ClosestPointTo(point);
+
+                //int count = 0;
+
+                ////while (true)
+                ////{
+                //    // The station and offset from the alignment of the point sitting on the featureline
+                //double flStation = 0;
+                //double flOffset = 0;
+
+                //    // The X and Y from the alignment of the point on the featureline at station and offset
+                //    double x = 0;
+                //    double y = 0;
+
+                //alignment.StationOffset(projection.X, projection.Y, out flStation, out flOffset);
+
+                //    alignment.PointLocation(flStation, flOffset, out x, out y);
+
+                //CoordinateSystem cs = this.CoordinateSystemByStation(flStation).Inverse();
+
+                //Point result = point.Transform(cs) as Point;
+
+                //station = flStation;
+                //offset = result.X;
+                //elevation = result.Z;
+
+                //    Utils.Log(string.Format("Station: {0}", station));
+
+                //    Utils.Log(string.Format("Margin: {0}", result.Y));
+
+                //    Utils.Log(string.Format("X: {0} Y: {1}", x, y));
+
+                //    // tolerance
+                //    if (Math.Abs(result.Y) > 0.0001 && count < 10)
+                //    {
+                //        projection = projection.Translate(cs.YAxis, -result.Y) as Point;
+                //    }
+                //    else
+                //    {
+                //        cs.Dispose();
+                //        result.Dispose();
+
+                //        //break;
+                //    } 
+
+                //    ++count;
+                ////}
+                #endregion
             }
             else
             {
@@ -492,6 +666,13 @@ namespace CivilConnection
             flatPt.Dispose();
             flatPC.Dispose();
 
+            #region OLD CODE
+            //double[] soe = this._baseline.GetStationOffsetElevationByPoint(point);
+
+            //double station = soe[0];
+            //double offset = soe[1] - this._baseline.GetStationOffsetElevationByPoint(PointAtStation(station))[1];
+            //double elevation = point.Z - PointAtStation(station).Z;
+            #endregion
             Utils.Log(string.Format("Featureline.GetStationOffsetElevationByPoint completed.", ""));
 
             return new Dictionary<string, object>

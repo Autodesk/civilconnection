@@ -11,13 +11,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Land;
-using Autodesk.AECC.Interop.Roadway;
-using Autodesk.DesignScript.Geometry;
-using Autodesk.DesignScript.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.Land;
+using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
 
 namespace CivilConnection
 {
@@ -277,7 +288,7 @@ namespace CivilConnection
             }
             else
             {
-                var message = "The Station value is not compatibile with the Baseline.";
+                var message = "The Station value is not compatible with the Baseline.";
 
                 Utils.Log(string.Format("ERROR: {0}", message));
 
@@ -291,7 +302,6 @@ namespace CivilConnection
             }
 
             Utils.Log(string.Format("Baseline.CoordinateSystemByStation completed.", ""));
-
 
             return cs;
         }
