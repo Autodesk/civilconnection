@@ -11,12 +11,32 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Land;
-using Autodesk.DesignScript.Geometry;
-using Autodesk.DesignScript.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using System.IO;
+using System.Xml;
+using System.Windows.Forms;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.Land;
+using Autodesk.AECC.Interop.UiLand;
 using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
+using Autodesk.DesignScript.Interfaces;
+
+using System.Dynamic;
 
 namespace CivilConnection
 {
@@ -54,11 +74,14 @@ namespace CivilConnection
         /// The maximum elevation
         /// </summary>
         double _maxElevation;
-
         /// <summary>
         /// The style
         /// </summary>
         string _style;
+        /// <summary>
+        /// The points of the LandFeatureline
+        /// </summary>
+        IList<Point> _points = new List<Point>();
         #endregion
 
         #region PUBLIC PROPERTIES
@@ -111,6 +134,27 @@ namespace CivilConnection
         /// The maximum elevation.
         /// </value>
         public double MaxElevation { get { return this._maxElevation; } }
+
+        /// <summary>
+        /// Gets the LandFeatureline points.
+        /// </summary>
+        public IList<Point> Points
+        {
+            get
+            {
+                if (this._points.Count == 0)
+                {
+                    foreach (Curve c in this._polycurve.Curves())
+                    {
+                        this._points.Add(c.StartPoint);
+                    }
+
+                    this._points.Add(this._polycurve.EndPoint);
+                }
+
+                return this._points;
+            }
+        }
         #endregion
 
         #region CONSTRUCTOR

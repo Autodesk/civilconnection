@@ -11,16 +11,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Land;
-using Autodesk.AECC.Interop.Roadway;
-using Autodesk.AECC.Interop.UiRoadway;
-using Autodesk.AutoCAD.Interop;
-using Autodesk.AutoCAD.Interop.Common;
-using Autodesk.DesignScript.Geometry;
-using Autodesk.DesignScript.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.UiLand;
+using Autodesk.AECC.Interop.Land;
+using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+
+using Autodesk.DesignScript.Geometry;
+
 using System.Xml;
 
 namespace CivilConnection
@@ -76,7 +87,7 @@ namespace CivilConnection
         /// <returns></returns>
         private string DumpLandXML()
         {
-           return Utils.DumpLandXML(this._document);
+            return Utils.DumpLandXML(this._document);
         }
 
         /// <summary>
@@ -86,16 +97,38 @@ namespace CivilConnection
         /// <returns></returns>
         /// 
         [IsVisibleInDynamoLibraryAttribute(false)]
-        public IList<LandFeatureline> GetLandFeaturelines(string xmlPath="")
+        public IList<LandFeatureline> GetLandFeaturelines(string xmlPath = "")
         {
             Utils.Log(string.Format("CivilDocument.GetLandFeaturelines started...", ""));
 
             if (string.IsNullOrEmpty(xmlPath))
             {
-                xmlPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "LandFeatureLinesReport.xml");
+                xmlPath = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "LandFeatureLinesReport.xml");
             }
 
-            bool result = this.SendCommand("-ExportLandFeatureLinesToXml\n");
+            this.SendCommand("-ExportLandFeatureLinesToXml\n");
+
+            DateTime start = DateTime.Now;
+
+
+            while (true)
+            {
+                if (System.IO.File.Exists(xmlPath))
+                {
+                    if (System.IO.File.GetLastWriteTime(xmlPath) > start)
+                    {
+                        start = System.IO.File.GetLastWriteTime(xmlPath);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            Utils.Log("XML acquired.");
+
+            bool result = true;
 
             IList<LandFeatureline> output = new List<LandFeatureline>();
 
@@ -113,7 +146,7 @@ namespace CivilConnection
                     {
                         AeccLandFeatureLine f = e as AeccLandFeatureLine;
 
-                        XmlElement fe = xmlDoc.GetElementsByTagName("FeatureLine").Cast<XmlElement>().First(x => x.Attributes["Name"].Value == f.Name);
+                        XmlElement fe = xmlDoc.GetElementsByTagName("FeatureLine").Cast<XmlElement>().First(x => x.Attributes["Handle"].Value == f.Handle.ToString());
 
                         IList<Point> points = new List<Point>();
 
@@ -126,10 +159,15 @@ namespace CivilConnection
                             points.Add(Point.ByCoordinates(x, y, z));
                         }
 
-                        PolyCurve pc = PolyCurve.ByPoints(points);
-                        string style = fe.Attributes["Style"].Value;
+                        points = Point.PruneDuplicates(points);
 
-                        output.Add(new LandFeatureline(f, pc, style));
+                        if (points.Count > 1)
+                        {
+                            PolyCurve pc = PolyCurve.ByPoints(points);
+                            string style = fe.Attributes["Style"].Value;
+
+                            output.Add(new LandFeatureline(f, pc, style));
+                        }
                     }
                 }
 

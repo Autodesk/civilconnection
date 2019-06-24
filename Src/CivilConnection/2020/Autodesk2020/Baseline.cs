@@ -29,6 +29,8 @@ using System.Reflection;
 
 using Autodesk.DesignScript.Runtime;
 using Autodesk.DesignScript.Geometry;
+using System.Xml;
+using System.IO;
 
 namespace CivilConnection
 {
@@ -44,6 +46,7 @@ namespace CivilConnection
         private double _end;
         private double[] _stations;
         private int _index;
+        private IList<BaselineRegion> _baselineRegions;
         #endregion
 
         #region PUBLIC PROPERTIES
@@ -104,6 +107,10 @@ namespace CivilConnection
         /// The index.
         /// </value>
         public int Index { get { return this._index; } }
+        /// <summary>
+        /// Gets the list of BaselineRegions
+        /// </summary>
+        internal IList<BaselineRegion> BaselineRegions { get { return this._baselineRegions; } }
 
         #endregion
 
@@ -130,6 +137,29 @@ namespace CivilConnection
 
             this._stations = stations.ToArray();
             this._index = index;
+
+            // 20190524 - Start
+            IList<BaselineRegion> output = new List<BaselineRegion>();
+
+            int i = 0;
+
+            foreach (AeccBaselineRegion blr in this._baseline.BaselineRegions)
+            {
+                // Can return Unspecified Error when the regions are not generated
+                try
+                {
+                    output.Add(new BaselineRegion(this, blr, i));
+                }
+                catch
+                {
+                    output.Add(null);
+                }
+
+                i += 1;
+            }
+
+            this._baselineRegions = output;
+            // 20190524 - End
         }
 
         #endregion
@@ -180,6 +210,126 @@ namespace CivilConnection
             }
         }
 
+        /// <summary>
+        /// Returns a collection of Featurelines in the Baseline for the given code organized by regions.
+        /// </summary>
+        /// <param name="code">The code of the Featurelines.</param>
+        /// <returns></returns>
+        private IList<IList<Featureline>> GetFeaturelinesFromXML(string code)
+        {
+            Utils.Log(string.Format("Baseline.GetFeaturelinesFromXML started ({0})...", code));
+
+            IList<IList<Featureline>> blFeaturelines = new List<IList<Featureline>>();
+            PolyCurve pc = null;
+            double side = 0;
+            int ri = 0;
+
+            string xmlPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CorridorFeatureLines.xml");  // Revit 2020 changed the path to the temp at a session level
+
+            Utils.Log(xmlPath);
+
+            this._baseline.Alignment.Document.SendCommand(string.Format("-ExportCorridorFeatureLinesToXml\n{0}\n", this._baseline.Corridor.Handle));
+
+            DateTime start = DateTime.Now;
+
+            while (true)
+            {
+                if (File.Exists(xmlPath))
+                {
+                    if (File.GetLastWriteTime(xmlPath) > start)
+                    {
+                        start = File.GetLastWriteTime(xmlPath);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            Utils.Log("XML acquired.");
+
+            if (File.Exists(xmlPath))
+            {
+                IList<Featureline> output = new List<Featureline>();
+
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(xmlPath);
+
+                foreach (XmlElement be in xmlDoc.GetElementsByTagName("Baseline")
+                    .Cast<XmlElement>()
+                    .Where(x => Convert.ToInt32(x.Attributes["Index"].Value) == this.Index && x.ParentNode.ParentNode.Attributes["Name"].Value == this.CorridorName))
+                {
+                    foreach (XmlElement fe in be.GetElementsByTagName("FeatureLine").Cast<XmlElement>().Where(x => x.Attributes["Code"].Value == code))
+                    {
+                        IList<Point> points = new List<Point>();
+
+                        double isBreak = 0;
+
+                        foreach (XmlElement p in fe.GetElementsByTagName("Point").Cast<XmlElement>().OrderBy(e => Convert.ToDouble(e.Attributes["Station"].Value)))
+                        {
+                            double x = Convert.ToDouble(p.Attributes["X"].Value);
+                            double y = Convert.ToDouble(p.Attributes["Y"].Value);
+                            double z = Convert.ToDouble(p.Attributes["Z"].Value);
+                            double b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
+
+                            isBreak += b;
+
+                            points.Add(Point.ByCoordinates(x, y, z));
+
+                            if (isBreak == 1)
+                            {
+                                Utils.Log("Break Point.");
+
+                                isBreak = 0;
+
+                                points = Point.PruneDuplicates(points);
+
+                                if (points.Count > 1)
+                                {
+                                    Utils.Log(string.Format("Points: {0}", points.Count));
+
+                                    pc = PolyCurve.ByPoints(points);
+                                    side = Convert.ToDouble(fe.Attributes["Side"].Value);
+                                    ri = Convert.ToInt32(fe.Attributes["RegionIndex"].Value);
+
+                                    output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, ri));
+                                }
+
+                                points = new List<Point>();
+                            }
+                        }
+
+                        if (isBreak == 0 && points.Count > 0)
+                        {
+                            points = Point.PruneDuplicates(points);
+
+                            if (points.Count > 1)
+                            {
+                                Utils.Log(string.Format("Points: {0}", points.Count));
+
+                                pc = PolyCurve.ByPoints(points);
+                                side = Convert.ToDouble(fe.Attributes["Side"].Value);
+                                ri = Convert.ToInt32(fe.Attributes["RegionIndex"].Value);
+
+                                output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, ri));
+                            }
+                        }
+                    }
+                }
+
+                blFeaturelines = output.OrderBy(f => f.BaselineRegionIndex).GroupBy(f => f.BaselineRegionIndex).Cast<IList<Featureline>>().ToList();
+            }
+            else
+            {
+                Utils.Log("ERROR: Failed to locate CorridorFeatureLines.xml in the Temp folder.");
+            }
+
+            Utils.Log(string.Format("Baseline.GetFeaturelinesFromXML completed.", ""));
+
+            return blFeaturelines;
+        }
+
         #endregion
 
         #region PUBLIC METHODS
@@ -190,30 +340,30 @@ namespace CivilConnection
         /// <returns>A list of BaselineRegions.</returns>
         public IList<BaselineRegion> GetBaselineRegions()
         {
-            Utils.Log(string.Format("Baseline.GetBaselineRegions started...", ""));
+            //Utils.Log(string.Format("Baseline.GetBaselineRegions started...", ""));
 
-            IList<BaselineRegion> output = new List<BaselineRegion>();
+            //IList<BaselineRegion> output = new List<BaselineRegion>();
 
-            int i = 0;
+            //int i = 0;
 
-            foreach (AeccBaselineRegion blr in this._baseline.BaselineRegions)
-            {
-                // Can return Unspecified Error when the regions are not generated
-                try
-                {
-                    output.Add(new BaselineRegion(this, blr, i));
-                }
-                catch
-                {
-                    output.Add(null);
-                }
+            //foreach (AeccBaselineRegion blr in this._baseline.BaselineRegions)
+            //{
+            //    // Can return Unspecified Error when the regions are not generated
+            //    try
+            //    {
+            //        output.Add(new BaselineRegion(this, blr, i));
+            //    }
+            //    catch
+            //    {
+            //        output.Add(null);
+            //    }
 
-                i += 1;
-            }
+            //    i += 1;
+            //}
 
-            Utils.Log(string.Format("Baseline.GetBaselineRegions completed.", ""));
+            //Utils.Log(string.Format("Baseline.GetBaselineRegions completed.", ""));
 
-            return output;
+            return this._baselineRegions;
         }
 
         /// <summary>
@@ -594,7 +744,7 @@ namespace CivilConnection
         /// </summary>
         /// <param name="code">the Featurelines code.</param>
         /// <returns></returns>
-        public IList<IList<Featureline>> GetFeaturelinesByCode(string code)  // 1.1.0
+        private IList<IList<Featureline>> GetFeaturelinesByCode_(string code)  // 1.1.0
         {
             Utils.Log(string.Format("Baseline.GetFeaturelinesByCode({0}) Started...", code));
 
@@ -621,6 +771,8 @@ namespace CivilConnection
 
             if (fs != null)
             {
+                Utils.Log(string.Format("Featurelines in region: {0}", fs.Count));
+
                 foreach (var fl in fs.Cast<AeccFeatureLine>())
                 {
                     Dictionary<double, Point> points = new Dictionary<double, Point>();
@@ -644,6 +796,7 @@ namespace CivilConnection
                     ++i;
                 }
             }
+
 
             if (cFLs.Count > 0)
             {
@@ -783,6 +936,16 @@ namespace CivilConnection
             Utils.Log(string.Format("Baseline.GetFeaturelinesByCode() Completed.", code));
 
             return blFeaturelines;
+        }
+
+        /// <summary>
+        /// Gets the featurelines by code
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        public IList<IList<Featureline>> GetFeaturelinesByCode(string code)
+        {
+            return this.GetFeaturelinesFromXML(code);
         }
 
         /// <summary>

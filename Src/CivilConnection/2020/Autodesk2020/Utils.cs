@@ -1784,8 +1784,8 @@ namespace CivilConnection
         [IsVisibleInDynamoLibrary(false)]
         public static void Log(string message)
         {
-            string path = Path.Combine(Path.GetTempPath(), "CivilConnection_temp.log");
-
+            string path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CivilConnection_temp.log");
+            
             using (StreamWriter sw = new StreamWriter(path, true))
             {
                 sw.WriteLine(string.Format("[{0}] {1}", DateTime.Now, message));
@@ -1798,7 +1798,7 @@ namespace CivilConnection
         [IsVisibleInDynamoLibrary(false)]
         public static void InitializeLog()
         {
-            string path = Path.Combine(Path.GetTempPath(), "CivilConnection_temp.log");
+            string path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CivilConnection_temp.log");
 
             if (File.Exists(path))
             {

@@ -88,6 +88,10 @@ namespace CivilConnection
         /// The ending station
         /// </summary>
         double _end;
+        /// <summary>
+        /// The Feautreline points
+        /// </summary>
+        IList<Point> _points = new List<Point>();
         #endregion
 
         #region PUBLIC PROPERTIES
@@ -151,6 +155,27 @@ namespace CivilConnection
         /// </summary>
         public int BaselineRegionIndex { get { return this._regionIndex; } }
 
+        /// <summary>
+        /// Gets the Featureline points.
+        /// </summary>
+        public IList<Point> Points
+        {
+            get
+            {
+                if (this._points.Count == 0)
+                {
+                    foreach (Curve c in this._polycurve.Curves())
+                    {
+                        this._points.Add(c.StartPoint);
+                    }
+
+                    this._points.Add(this._polycurve.EndPoint);
+                }
+
+                return this._points;
+            }
+        }
+
         #endregion
 
         #region CONSTRUCTOR
@@ -170,9 +195,18 @@ namespace CivilConnection
             this._code = code;
             this._side = side;
             this._regionIndex = regionIndex;
-            var region = this.Baseline.GetBaselineRegions()[this._regionIndex];
-            this._start = region.Start;
-            this._end = region.End;
+            // 20190524 -- Start
+            // var region = this.Baseline.GetBaselineRegions()[this._regionIndex];
+            double startStation = 0;
+            double startOffset = 0;
+            double endStation = 0;
+            double endOffset = 0;
+            baseline._baseline.Alignment.StationOffset(polycurve.StartPoint.X, polycurve.StartPoint.Y, out startStation, out startOffset);
+            baseline._baseline.Alignment.StationOffset(polycurve.EndPoint.X, polycurve.EndPoint.Y, out endStation, out endOffset);
+            this._start = startStation;
+            this._end = endStation;
+
+            // 20190524 -- End
         }
 
         #endregion
@@ -676,10 +710,10 @@ namespace CivilConnection
             Utils.Log(string.Format("Featureline.GetStationOffsetElevationByPoint completed.", ""));
 
             return new Dictionary<string, object>
-            { 
+            {
                 { "Station", Math.Round(station, 5) },
                 { "Offset", Math.Round(offset, 5) },
-                { "Elevation", Math.Round(elevation, 5) } 
+                { "Elevation", Math.Round(elevation, 5) }
             };
         }
 
@@ -816,7 +850,6 @@ namespace CivilConnection
             Point p = null;
             Curve c = null;
             Point e = null;
-            Point center = null;
 
             IList<Point> points = new List<Point>();
             double startParameter = curve.ParameterAtPoint(curve.StartPoint);
@@ -824,21 +857,29 @@ namespace CivilConnection
 
             int n = Convert.ToInt32(Math.Ceiling(curve.Length / chord));
 
+            Utils.Log(string.Format("Number of points: {0}", n));
+
             bool found = false;
 
-            center = curve.StartPoint;
+            p = curve.StartPoint;
 
-            points.Add(center);
+            points.Add(p);
 
             double par = startParameter;
 
             for (int i = 0; i < n; ++i)
             {
-                s = Sphere.ByCenterPointRadius(center, chord);
+                Utils.Log(string.Format("Processing Point: {0}", i));
+
+                s = Sphere.ByCenterPointRadius(p, chord);
 
                 if (s != null)
                 {
+                    Utils.Log(string.Format("Sphere...", ""));
+
                     var intersection = s.Intersect(curve);
+
+                    Utils.Log(string.Format("Looking for intersections...", ""));
 
                     if (intersection != null)
                     {
@@ -846,10 +887,11 @@ namespace CivilConnection
                         {
                             if (g is Curve)
                             {
+                                Utils.Log(string.Format("Curve found...", ""));
+
                                 try
                                 {
                                     c = g as Curve;
-
                                     e = c.EndPoint;
 
                                     double parameter = curve.ParameterAtPoint(e);
@@ -863,14 +905,13 @@ namespace CivilConnection
 
                                     if (parameter > par)
                                     {
-                                        p = e;
+                                        p = Point.ByCoordinates(e.X, e.Y, e.Z);
                                         par = parameter;
                                     }
-
-
                                 }
                                 catch (Exception ex)
                                 {
+                                    Utils.Log(string.Format("ERROR: {0}", ex.Message));
                                     throw ex;
                                 }
                             }
@@ -880,8 +921,14 @@ namespace CivilConnection
 
                 if (null != p)
                 {
+                    Utils.Log(string.Format("Parameter: {0}", par));
+
                     points.Add(p);
-                    center = p;
+                }
+                else
+                {
+                    Utils.Log(string.Format("ERROR: {0}", "Point is null"));
+                    break;
                 }
 
                 if (found)
@@ -890,11 +937,9 @@ namespace CivilConnection
                 }
             }
 
-            //s.Dispose();
-            //p.Dispose();
-            //center.Dispose();
-            //c.Dispose();
-            //e.Dispose();
+            s.Dispose();
+            c.Dispose();
+            e.Dispose();
 
             Utils.Log(string.Format("Featureline.PointsByChord completed.", ""));
 

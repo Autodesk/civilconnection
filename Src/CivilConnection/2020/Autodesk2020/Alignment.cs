@@ -637,6 +637,29 @@ namespace CivilConnection
         }
 
         /// <summary>
+        /// Returns a Point along the Alignment at the specified station.
+        /// </summary>
+        /// <param name="station">The station value.</param>
+        /// <param name="offset">The offset value.</param>
+        /// <param name="elevation">The elevation value.</param>
+        /// <returns></returns>
+        public Point PointByStationOffsetElevation(double station, double offset = 0, double elevation = 0)
+        {
+            Utils.Log("Alignment.PointByStationOffsetElevation Started...");
+
+            double northing = 0;
+            double easting = 0;
+
+            this._alignment.PointLocation(station, offset, out easting, out northing);
+
+            Point point = Point.ByCoordinates(easting, northing, elevation);
+
+            Utils.Log("Alignment.PointByStationOffsetElevation Completed.");
+
+            return point;
+        }
+
+        /// <summary>
         /// Public textual representation in the Dynamo node preview.
         /// </summary>
         /// <returns>

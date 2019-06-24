@@ -158,12 +158,14 @@
     <Compile Include="RevitFailuresPreprocessor.cs" />
     <Compile Include="RevitFamilyLoadOptions.cs" />
     <Compile Include="RevitUtils.cs" />
+    <Compile Include="Ring.cs" />
     <Compile Include="SessionVariables.cs" />
     <Compile Include="ShapePoint.cs" />
     <Compile Include="ShapePointArray.cs" />
     <Compile Include="SlopedFloor.cs" />
     <Compile Include="Subassembly.cs" />
     <Compile Include="SubassemblyParameter.cs" />
+    <Compile Include="TBMTunnel.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="UtilsObjectsLocation.cs" />
     <Compile Include="UtilsSectionView.cs" />

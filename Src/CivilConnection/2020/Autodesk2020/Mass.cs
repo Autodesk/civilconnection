@@ -11,14 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
+using Autodesk.DesignScript.Runtime;
 using Autodesk.Revit.DB;
-using Revit.Elements;
+using Autodesk.Revit.DB.Mechanical;
+
 using Revit.GeometryConversion;
+
 using RevitServices.Persistence;
 using RevitServices.Transactions;
-using System;
-using System.Collections.Generic;
+using Revit.Elements;
 using System.IO;
+using System.Collections.Generic;
+using System;
 using System.Linq;
 
 namespace CivilConnection
@@ -134,13 +138,11 @@ namespace CivilConnection
             ElementBinder.SetElementForTrace(InternalElement);
         }
 
-#pragma warning disable CS0108 // 'Mass.InternalSetFamilyInstance(FamilyInstance)' hides inherited member 'AbstractFamilyInstance.InternalSetFamilyInstance(FamilyInstance)'. Use the new keyword if hiding was intended.
         /// <summary>
         /// Internals the set family instance.
         /// </summary>
         /// <param name="fi">The family instance.</param>
         protected void InternalSetFamilyInstance(Autodesk.Revit.DB.FamilyInstance fi)
-#pragma warning restore CS0108 // 'Mass.InternalSetFamilyInstance(FamilyInstance)' hides inherited member 'AbstractFamilyInstance.InternalSetFamilyInstance(FamilyInstance)'. Use the new keyword if hiding was intended.
         {
             this.InternalFamilyInstance = fi;
             this.InternalElementId = fi.Id;
@@ -576,8 +578,8 @@ namespace CivilConnection
         /// <param name="crossSections">The cross sections.</param>
         /// <param name="name">The name.</param>
         /// <param name="familyTemplate">The mass template path.</param>
-        /// <param name="append">Append the geoemtry definition to the current geometry in the Family.</param>
-        /// <param name="join">If true attempets to join the geoemtries.</param>
+        /// <param name="append">Append the geometry definition to the current geometry in the Family.</param>
+        /// <param name="join">If true attempets to join the geometries.</param>
         /// <returns></returns>
         public static Revit.Elements.Element ByCrossSections(Autodesk.DesignScript.Geometry.Curve[][] crossSections, string name, string familyTemplate, bool append = false, bool join = false)
         {
@@ -1822,6 +1824,8 @@ namespace CivilConnection
 
             shapes = shapes.OrderBy(x => x.Station).ToArray();  // make sure the shapes are sorted by station
 
+            shapes = shapes.GroupBy(x => Math.Round(x.Station, 8)).Select(g => g.First()).ToArray();  // make sure there are no overalpping shapes
+            
             #endregion
 
             #region FAMILY HOUSEKEEPING
@@ -2028,12 +2032,14 @@ namespace CivilConnection
                     // Only the shapes that satisfy the stations pairs will be processed
                     IList<IList<AppliedSubassemblyShape>> processShapes = new List<IList<AppliedSubassemblyShape>>();
 
-                    if (stations != null)
+                    if (stations != null || stations.Length > 1)
                     {
+                        stations = stations.OrderBy(x => x).ToArray();
+
                         for (int i = 0; i < stations.Length - 1; ++i)
                         {
-                            double min = Math.Round(stations[i], 5);
-                            double max = Math.Round(stations[i + 1], 5);
+                            double min = stations[i];
+                            double max = stations[i + 1];
 
                             // processShapes.Add(shapes.TakeWhile(x => Math.Round(x.Station, 5) >= min && Math.Round(x.Station, 5) <= max).ToList());
 
@@ -2041,7 +2047,8 @@ namespace CivilConnection
 
                             foreach (AppliedSubassemblyShape sh in shapes)
                             {
-                                if (Math.Round(sh.Station, 5) >= min && Math.Round(sh.Station, 5) <= max)
+                                if ((Math.Round(min, 6) <= Math.Round(sh.Station, 3) && Math.Round(sh.Station, 6) <= Math.Round(max, 3)) ||
+                                    (Math.Abs(sh.Station - min) < 0.0001) || (Math.Abs(sh.Station - max) < 0.0001))
                                 {
                                     list.Add(sh);
                                 }
@@ -2049,6 +2056,9 @@ namespace CivilConnection
 
                             if (list.Count > 1)
                             {
+                                Utils.Log(string.Format("Min Station {0}", min));
+                                Utils.Log(string.Format("Max Station {0}", max));
+
                                 processShapes.Add(list.OrderBy(x => x.Station).ToList());
                             }
                         }
@@ -2070,6 +2080,9 @@ namespace CivilConnection
 
                         try
                         {
+                            Utils.Log(string.Format("Min Station {0}", segment.Min(x => x.Station)));
+                            Utils.Log(string.Format("Max Station {0}", segment.Max(x => x.Station)));
+
                             var crossSections = segment.Select(x => x.Geometry.Transform(cs).Explode().Select(c => c as Autodesk.DesignScript.Geometry.Curve)).ToArray();
 
                             Utils.Log(string.Format("Cross Sections ready: {0}", crossSections.Length));
@@ -2084,7 +2097,7 @@ namespace CivilConnection
 
                                     foreach (var c in crossSections[i])
                                     {
-                                        // Utils.Log(string.Format("{0}", c));  // Too chatty...
+                                        //Utils.Log(string.Format("{0}", c));  // Too chatty...
 
                                         var curve = c.ToRevitType();
                                         profile.Append(curve);
@@ -2148,12 +2161,64 @@ namespace CivilConnection
                                     }
                                     catch (Exception ex)
                                     {
+                                        Utils.Log(string.Format("ERROR 1: Mass.ByShapesCreaseStations Profiles {0}", ex.Message));
+
                                         foreach (CurveLoop cl in profiles)
                                         {
                                             CreateModelCurves(famDoc, cl);
                                         }
 
-                                        Utils.Log(string.Format("ERROR 1: Mass.ByShapesCreaseStations Profiles {0}", ex.Message));
+                                        // 20190610 -- START
+
+                                        for (int i = 0; i < profiles.Count - 1; i++)
+                                        {
+                                            Utils.Log(string.Format("Processing Cross Section...", ""));
+
+                                            var refArrArr = new ReferenceArrayArray();
+
+                                            foreach (var profile in new CurveLoop[] { profiles[i], profiles[i + 1] })
+                                            {
+                                                Utils.Log(string.Format("Processing Profile...", ""));
+
+                                                var refArr = new ReferenceArray();
+
+                                                foreach (var curve in profile)
+                                                {
+                                                    Utils.Log(string.Format("Processing Curve...", ""));
+
+                                                    var sp = Autodesk.Revit.DB.SketchPlane.Create(famDoc, profile.GetPlane());
+                                                    var mc = famDoc.FamilyCreate.NewModelCurve(curve, sp);
+                                                    // mc.ChangeToReferenceLine(); // 1.1.11 commented
+                                                    var r = new Reference(mc);
+                                                    refArr.Append(r);
+
+                                                    Utils.Log(string.Format("Curve Added!", ""));
+                                                }
+
+                                                refArrArr.Append(refArr);
+
+                                                Utils.Log(string.Format("Profile Added!", ""));
+                                            }
+
+                                            var formTemp = famDoc.FamilyCreate.NewLoftForm(true, refArrArr);
+
+                                            Utils.Log(string.Format("Loft Created!", ""));
+
+                                            foreach (GeometryObject go in formTemp.get_Geometry(opts))
+                                            {
+                                                if (go is Solid)
+                                                {
+                                                    Solid solid = go as Solid;
+
+                                                    if (solid.Volume > 0)
+                                                    {
+                                                        Utils.Log(string.Format("Loft Solid Extracted!", ""));
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // 20190610 -- END
                                     }
                                 }
                                 else
@@ -2402,27 +2467,39 @@ namespace CivilConnection
                     // Only the shapes that satisfy the stations pairs will be processed
                     IList<IList<Autodesk.DesignScript.Geometry.PolyCurve>> processShapes = new List<IList<Autodesk.DesignScript.Geometry.PolyCurve>>();
 
-                    if (stations != null)
+                    if (stations != null || stations.Length > 1)
                     {
+                        stations = stations.OrderBy(x => x).ToArray();
+
                         for (int i = 0; i < stations.Length - 1; ++i)
                         {
-                            double min = Math.Round(stations[i], 5);
-                            double max = Math.Round(stations[i + 1], 5);
+                            double min = Math.Round(stations[i], 9);
+                            double max = Math.Round(stations[i + 1], 9);
 
                             IList<Autodesk.DesignScript.Geometry.PolyCurve> list = new List<Autodesk.DesignScript.Geometry.PolyCurve>();
+
+                            double previous = -2 * min;
 
                             foreach (Autodesk.DesignScript.Geometry.PolyCurve sh in closedCurves)
                             {
                                 double station = Convert.ToDouble(alignment.GetStationOffsetElevation(sh.StartPoint)["Station"]);
 
-                                if (Math.Round(station, 5) >= min && Math.Round(station, 5) <= max)
+                                if ((Math.Round(min, 6) <= Math.Round(station, 3) && Math.Round(station, 6) <= Math.Round(max, 3)) ||
+                                   (Math.Abs(station - min) < 0.0001) || (Math.Abs(station - max) < 0.0001))
                                 {
-                                    list.Add(sh);
+                                    if (Math.Abs(previous - station) > 0.00001)
+                                    {
+                                        list.Add(sh);
+                                        previous = Math.Round(station, 5);
+                                    }
                                 }
                             }
 
                             if (list.Count > 1)
                             {
+                                Utils.Log(string.Format("Min Station {0}", min));
+                                Utils.Log(string.Format("Max Station {0}", max));
+
                                 processShapes.Add(list.OrderBy(x => alignment.GetStationOffsetElevation(x.StartPoint)["Station"]).ToList());
                             }
                         }
@@ -2498,12 +2575,67 @@ namespace CivilConnection
                                     }
                                     catch (Exception ex)
                                     {
+                                        Utils.Log(string.Format("ERROR 1: Mass.ByClosedCurvesCreaseStations Profiles {0}", ex.Message));
+
                                         foreach (CurveLoop cl in profiles)
                                         {
                                             CreateModelCurves(famDoc, cl);
                                         }
 
-                                        Utils.Log(string.Format("ERROR 1: Mass.ByClosedCurvesCreaseStations Profiles {0}", ex.Message));
+                                        // 20190610 -- START
+
+                                        for (int i = 0; i < profiles.Count - 1; i++)
+                                        {
+                                            Utils.Log(string.Format("Processing Cross Section...", ""));
+
+                                            var refArrArr = new ReferenceArrayArray();
+
+                                            foreach (var profile in new CurveLoop[] { profiles[i], profiles[i + 1] })
+                                            {
+                                                Utils.Log(string.Format("Processing Profile...", ""));
+
+                                                var refArr = new ReferenceArray();
+
+                                                foreach (var curve in profile)
+                                                {
+                                                    Utils.Log(string.Format("Processing Curve...", ""));
+
+                                                    var sp = Autodesk.Revit.DB.SketchPlane.Create(famDoc, profile.GetPlane());
+                                                    var mc = famDoc.FamilyCreate.NewModelCurve(curve, sp);
+                                                    // mc.ChangeToReferenceLine(); // 1.1.11 commented
+                                                    var r = new Reference(mc);
+                                                    refArr.Append(r);
+
+                                                    Utils.Log(string.Format("Curve Added!", ""));
+                                                }
+
+                                                refArrArr.Append(refArr);
+
+                                                Utils.Log(string.Format("Profile Added!", ""));
+                                            }
+
+                                            var formTemp = famDoc.FamilyCreate.NewLoftForm(true, refArrArr);
+
+                                            Utils.Log(string.Format("Loft Created!", ""));
+
+                                            foreach (GeometryObject go in formTemp.get_Geometry(opts))
+                                            {
+                                                if (go is Solid)
+                                                {
+                                                    Solid solid = go as Solid;
+
+                                                    if (solid.Volume > 0)
+                                                    {
+                                                        Utils.Log(string.Format("Loft Solid Extracted!", ""));
+                                                    }
+                                                }
+                                            }
+
+                                        }
+
+                                        // 20190610 -- END
+
+                                        
                                     }
                                 }
                                 else

@@ -11,13 +11,30 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.AECC.Interop.Roadway;
-using Autodesk.AECC.Interop.UiRoadway;
-using Autodesk.DesignScript.Geometry;
-using Autodesk.DesignScript.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.Runtime;
+using System.Runtime.InteropServices;
+
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.Land;
+using Autodesk.AECC.Interop.UiLand;
+using System.Reflection;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
+
+//using Dynamo.Wpf.Nodes;
+
+using ProtoCore.Properties;
+using System.Xml;
 
 namespace CivilConnection
 {
@@ -40,6 +57,17 @@ namespace CivilConnection
         /// </summary>
         internal AeccRoadwayDocument _document;
         /// <summary>
+        /// Corridor Applied Subassembly Shapes
+        /// </summary>
+        private IList<IList<IList<AppliedSubassemblyShape>>> _shapes = new List<IList<IList<AppliedSubassemblyShape>>>();
+        /// <summary>
+        /// Corridor Applied Subassembly Links
+        /// </summary>
+        private IList<IList<IList<AppliedSubassemblyLink>>> _links = new List<IList<IList<AppliedSubassemblyLink>>>();
+        #endregion
+
+        #region PUBLIC PRoPERTIES
+        /// <summary>
         /// Gets the baselines.
         /// </summary>
         /// <value>
@@ -61,6 +89,37 @@ namespace CivilConnection
         /// </value>
         internal AeccCorridor InternalElement { get { return this._corridor; } }
 
+        /// <summary>
+        /// Gets the corridor applied subassembly shapes.
+        /// </summary>
+        public IList<IList<IList<AppliedSubassemblyShape>>> Shapes
+        {
+            get
+            {
+                if (this._shapes.Count == 0)
+                {
+                    this._shapes = GetShapesFromXML();
+                }
+
+                return this._shapes;
+            }
+        }
+
+        /// <summary>
+        /// Gets the corridor applied subassembly links.
+        /// </summary>
+        public IList<IList<IList<AppliedSubassemblyLink>>> Links
+        {
+            get
+            {
+                if (this._links.Count == 0)
+                {
+                    this._links = GetLinksFromXML();
+                }
+
+                return this._links;
+            }
+        }
         #endregion
 
         #region CONSTRUCTOR
@@ -450,6 +509,264 @@ namespace CivilConnection
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns a collection of AppliedSubassemblyShapes in the Corridor.
+        /// </summary>
+        /// <returns></returns>
+        private IList<IList<IList<AppliedSubassemblyShape>>> GetShapesFromXML()
+        {
+            Utils.Log(string.Format("Corridor.GetShapesFromXML started...", ""));
+
+            IList<IList<IList<AppliedSubassemblyShape>>> corridorShapes = new List<IList<IList<AppliedSubassemblyShape>>>();
+
+            string xmlPath = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CorridorShapes.xml");  // Revit 2020 changed the path to the temp at a session level
+
+            Utils.Log(xmlPath);
+
+            this._document.SendCommand(string.Format("-ExportSubassemblyShapesToXML\n{0}\n{1}\n{2}\n", this._corridor.Handle, -1, -1));
+
+            DateTime start = DateTime.Now;
+
+
+            while (true)
+            {
+                if (System.IO.File.Exists(xmlPath))
+                {
+                    if (System.IO.File.GetLastWriteTime(xmlPath) > start)
+                    {
+                        start = System.IO.File.GetLastWriteTime(xmlPath);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            Utils.Log("XML acquired.");
+
+            if (System.IO.File.Exists(xmlPath))
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(xmlPath);
+
+                foreach (XmlElement corridor in xmlDoc.GetElementsByTagName("Corridor").Cast<XmlElement>().First(x => x.Attributes["Name"].Value == this.Name))
+                {
+                    foreach (XmlElement baseline in corridor.GetElementsByTagName("Baseline"))
+                    {
+                        IList<IList<AppliedSubassemblyShape>> baselineShapes = new List<IList<AppliedSubassemblyShape>>();
+
+                        foreach (XmlElement region in baseline.GetElementsByTagName("Region"))
+                        {
+                            IList<AppliedSubassemblyShape> regionShapes = new List<AppliedSubassemblyShape>();
+
+                            foreach (XmlElement shape in region.GetElementsByTagName("Shape"))
+                            {
+                                IList<Point> points = new List<Point>();
+
+                                string corrName = shape.Attributes["Corridor"].Value;
+                                string baselineIndex = shape.Attributes["BaselineIndex"].Value;
+                                string regionIndex = shape.Attributes["RegionIndex"].Value;
+                                string assembly = shape.Attributes["AssemblyName"].Value;
+                                string subassembly = shape.Attributes["SubassemblyName"].Value;
+                                string handle = shape.Attributes["Handle"].Value;
+                                string index = shape.Attributes["ShapeIndex"].Value;
+                                double station = Convert.ToDouble(shape.Attributes["Station"].Value);
+
+                                string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
+
+                                foreach (XmlElement p in shape.GetElementsByTagName("Point"))
+                                {
+                                    double x = Convert.ToDouble(p.Attributes["X"].Value);
+                                    double y = Convert.ToDouble(p.Attributes["Y"].Value);
+                                    double z = Convert.ToDouble(p.Attributes["Z"].Value);
+
+                                    points.Add(Point.ByCoordinates(x, y, z));
+                                }
+
+                                IList<string> codes = new List<string>();
+
+                                foreach (XmlElement c in shape.GetElementsByTagName("Code"))
+                                {
+                                    string code = c.Attributes["Name"].Value;
+                                    if (!codes.Contains(code))
+                                    {
+                                        codes.Add(code);
+                                    }
+                                }
+
+                                points = Point.PruneDuplicates(points);
+
+                                PolyCurve pc = PolyCurve.ByPoints(points, true);
+
+                                AppliedSubassemblyShape appSubShape = null;
+
+                                try
+                                {
+                                    appSubShape = new AppliedSubassemblyShape(name, pc, codes, station);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Utils.Log(string.Format("ERROR: {0} {1} {2}", name, station, ex.Message));
+                                }
+
+                                if (appSubShape != null)
+                                {
+                                    regionShapes.Add(appSubShape);
+                                }
+                            }
+
+                            baselineShapes.Add(regionShapes);
+                        }
+
+                        corridorShapes.Add(baselineShapes);
+                    }
+                }
+            }
+            else
+            {
+                Utils.Log("ERROR: Failed to locate CorridorShapes.xml in the Temp folder.");
+            }
+
+            Utils.Log(string.Format("Corridor.GetShapesFromXML completed.", ""));
+
+            return corridorShapes;
+        }
+
+        /// <summary>
+        /// Returns a collection of AppliedSubassemblyLinks in the Corridor.
+        /// </summary>
+        /// <returns></returns>
+        private IList<IList<IList<AppliedSubassemblyLink>>> GetLinksFromXML()
+        {
+            Utils.Log(string.Format("Corridor.GetLinksFromXML started...", ""));
+
+            IList<IList<IList<AppliedSubassemblyLink>>> corridorLinks = new List<IList<IList<AppliedSubassemblyLink>>>();
+
+            string xmlPath = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CorridorLinks.xml");  // Revit 2020 changed the path to the temp at a session level
+
+            Utils.Log(xmlPath);
+
+            this._document.SendCommand(string.Format("-ExportSubassemblyLinksToXML\n{0}\n{1}\n{2}\n", this._corridor.Handle, -1, -1));
+
+            DateTime start = DateTime.Now;
+
+
+            while (true)
+            {
+                if (System.IO.File.Exists(xmlPath))
+                {
+                    if (System.IO.File.GetLastWriteTime(xmlPath) > start)
+                    {
+                        start = System.IO.File.GetLastWriteTime(xmlPath);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            Utils.Log("XML acquired.");
+
+            if (System.IO.File.Exists(xmlPath))
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(xmlPath);
+
+                foreach (XmlElement corridor in xmlDoc.GetElementsByTagName("Corridor").Cast<XmlElement>().First(x => x.Attributes["Name"].Value == this.Name))
+                {
+                    foreach (XmlElement baseline in corridor.GetElementsByTagName("Baseline"))
+                    {
+                        IList<IList<AppliedSubassemblyLink>> baselineLinks = new List<IList<AppliedSubassemblyLink>>();
+
+                        foreach (XmlElement region in baseline.GetElementsByTagName("Region"))
+                        {
+                            IList<AppliedSubassemblyLink> regionLinks = new List<AppliedSubassemblyLink>();
+
+                            foreach (XmlElement link in region.GetElementsByTagName("Link"))
+                            {
+                                IList<Point> points = new List<Point>();
+
+                                string corrName = link.Attributes["Corridor"].Value;
+                                string baselineIndex = link.Attributes["BaselineIndex"].Value;
+                                string regionIndex = link.Attributes["RegionIndex"].Value;
+                                string assembly = link.Attributes["AssemblyName"].Value;
+                                string subassembly = link.Attributes["SubassemblyName"].Value;
+                                string handle = link.Attributes["Handle"].Value;
+                                string index = link.Attributes["LinkIndex"].Value;
+                                double station = Convert.ToDouble(link.Attributes["Station"].Value);
+
+                                string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
+
+                                foreach (XmlElement p in link.GetElementsByTagName("Point"))
+                                {
+                                    double x = Convert.ToDouble(p.Attributes["X"].Value);
+                                    double y = Convert.ToDouble(p.Attributes["Y"].Value);
+                                    double z = Convert.ToDouble(p.Attributes["Z"].Value);
+
+                                    points.Add(Point.ByCoordinates(x, y, z));
+                                }
+
+                                IList<string> codes = new List<string>();
+
+                                foreach (XmlElement c in link.GetElementsByTagName("Code"))
+                                {
+                                    string code = c.Attributes["Name"].Value;
+                                    if (!codes.Contains(code))
+                                    {
+                                        codes.Add(code);
+                                    }
+                                }
+
+                                points = Point.PruneDuplicates(points);
+
+                                if (points.Count > 1)
+                                {
+                                    PolyCurve pc = PolyCurve.ByPoints(points);
+
+                                    AppliedSubassemblyLink appSubLink = null;
+
+                                    try
+                                    {
+                                        appSubLink = new AppliedSubassemblyLink(name, pc, codes, station);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Utils.Log(string.Format("ERROR: {0} {1} {2}", name, station, ex.Message));
+                                    }
+
+                                    if (appSubLink != null)
+                                    {
+                                        regionLinks.Add(appSubLink);
+                                    }
+                                    else
+                                    {
+                                        Utils.Log(string.Format("ERROR: The AppliedSubassemblyLink is null, Station: {0}", station));
+                                    }
+                                }
+                                else
+                                {
+                                    Utils.Log(string.Format("ERROR: Not enough points", ""));
+                                }
+                            }
+
+                            baselineLinks.Add(regionLinks);
+                        }
+
+                        corridorLinks.Add(baselineLinks);
+                    }
+                }
+            }
+            else
+            {
+                Utils.Log("ERROR: Failed to locate CorridorLinks.xml in the Temp folder.");
+            }
+
+            Utils.Log(string.Format("Corridor.GetLinksFromXML completed.", ""));
+
+            return corridorLinks;
+        }
         #endregion
 
         #region PUBLIC METHODS
@@ -538,7 +855,7 @@ namespace CivilConnection
         /// </summary>
         /// <param name="dumpXML">If true dumps a LandXML in the Temp folder.</param>
         /// <returns></returns>
-        public IList<IList<IList<IList<IList<Point>>>>> GetSubassemblyPoints(bool dumpXML=false)
+        public IList<IList<IList<IList<IList<Point>>>>> GetSubassemblyPoints(bool dumpXML = false)
         {
             return Utils.GetCorridorSubAssembliesFromLandXML(this, dumpXML);
         }
@@ -554,7 +871,7 @@ namespace CivilConnection
             return Utils.GetCorridorPointsByCodeFromLandXML(this, code);
         }
 
-       
+
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
