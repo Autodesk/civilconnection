@@ -150,8 +150,9 @@ namespace CivilConnection
                 {
                     output.Add(new BaselineRegion(this, blr, i));
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Utils.Log(string.Format("ERROR: Baseline Regions: {0}", ex.Message));
                     output.Add(null);
                 }
 

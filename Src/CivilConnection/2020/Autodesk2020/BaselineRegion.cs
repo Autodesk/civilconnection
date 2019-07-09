@@ -686,7 +686,18 @@ namespace CivilConnection
 
             this._index = i;
 
-            this._assembly = blr.AssemblyDbEntity.DisplayName;
+            try
+            {
+                this._assembly = blr.AssemblyDbEntity.DisplayName;
+            }
+            catch (Exception ex)
+            {
+                Utils.Log(string.Format("ERROR: Assembly Name Failed\t{0}", ex.Message));
+
+                this._assembly = this._index.ToString();
+
+                //throw new Exception("Assembly Name Failed\n\n" + ex.Message);
+            }
 
             try
             {
