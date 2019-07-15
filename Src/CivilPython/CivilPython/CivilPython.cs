@@ -542,32 +542,36 @@ namespace CivilPython
                                 }
                             }
 
-                            foreach (Autodesk.Civil.DatabaseServices.Baseline b in corr.Baselines)
+                            if (false) // DEBUG set to false to avoid rebuilding corridors without Subassemly PKTs
                             {
-                                foreach (Autodesk.Civil.DatabaseServices.BaselineRegion r in b.BaselineRegions)
+
+                                foreach (Autodesk.Civil.DatabaseServices.Baseline b in corr.Baselines)
                                 {
-                                    int rIndex = b.BaselineRegions.IndexOf(r);
-
-                                    if (rIndex > 0 && r.AssemblyId != b.BaselineRegions[rIndex - 1].AssemblyId && r.StartStation - b.BaselineRegions[rIndex - 1].EndStation < 0.001)
+                                    foreach (Autodesk.Civil.DatabaseServices.BaselineRegion r in b.BaselineRegions)
                                     {
-                                        if (!toRebuild)
-                                        {
-                                            toRebuild = true;
-                                        }
+                                        int rIndex = b.BaselineRegions.IndexOf(r);
 
-                                        if (r.SortedStations()[1] - r.StartStation > 0.001)
+                                        if (rIndex > 0 && r.AssemblyId != b.BaselineRegions[rIndex - 1].AssemblyId && r.StartStation - b.BaselineRegions[rIndex - 1].EndStation < 0.001)
                                         {
-                                            r.AddStation(r.StartStation + 0.001, "Extra Station");  // Need to rebuild the corridor !!!
+                                            if (!toRebuild)
+                                            {
+                                                toRebuild = true;
+                                            }
+
+                                            if (r.SortedStations()[1] - r.StartStation > 0.001)
+                                            {
+                                                r.AddStation(r.StartStation + 0.001, "Extra Station");  // Need to rebuild the corridor !!!
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            if (toRebuild)
-                            {
-                                corr.UpgradeOpen();
-                                corr.Rebuild();
-                                corr.DowngradeOpen(); 
+                                if (toRebuild)  
+                                {
+                                    corr.UpgradeOpen();
+                                    corr.Rebuild();
+                                    corr.DowngradeOpen();
+                                } 
                             }
 
                             XmlElement corridor = xmlDoc.CreateElement("Corridor");
@@ -731,6 +735,8 @@ namespace CivilPython
                                 ++blCounter;
                             }
                         }
+
+                        t.Commit();
                     }
                 }
             }
