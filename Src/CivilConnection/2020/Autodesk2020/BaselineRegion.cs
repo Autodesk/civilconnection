@@ -29,6 +29,7 @@ using System.Reflection;
 using Autodesk.DesignScript.Runtime;
 using Autodesk.DesignScript.Geometry;
 using System.Xml;
+using System.Globalization;
 
 namespace CivilConnection
 {
@@ -338,18 +339,32 @@ namespace CivilConnection
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.Load(xmlPath);
 
+                    Utils.Log("Processing XML...");
+
                     foreach (XmlElement corridor in xmlDoc.GetElementsByTagName("Corridor").Cast<XmlElement>().First(x => x.Attributes["Name"].Value == this._baseline.CorridorName))
                     {
+
+                        //Utils.Log("Processing Corridor...");
+
                         foreach (XmlElement baseline in corridor.GetElementsByTagName("Baseline"))
                         {
+
+                            //Utils.Log("Processing Baseline...");
+
                             IList<IList<AppliedSubassemblyShape>> baselineShapes = new List<IList<AppliedSubassemblyShape>>();
 
                             foreach (XmlElement region in baseline.GetElementsByTagName("Region"))
                             {
+
+                                //Utils.Log("Processing Region...");
+
                                 IList<AppliedSubassemblyShape> regionShapes = new List<AppliedSubassemblyShape>();
 
                                 foreach (XmlElement shape in region.GetElementsByTagName("Shape"))
                                 {
+
+                                    //Utils.Log("Processing Shape...");
+
                                     IList<Point> points = new List<Point>();
 
                                     string corrName = shape.Attributes["Corridor"].Value;
@@ -359,15 +374,15 @@ namespace CivilConnection
                                     string subassembly = shape.Attributes["SubassemblyName"].Value;
                                     string handle = shape.Attributes["Handle"].Value;
                                     string index = shape.Attributes["ShapeIndex"].Value;
-                                    double station = Convert.ToDouble(shape.Attributes["Station"].Value);
+                                    double station = Convert.ToDouble(shape.Attributes["Station"].Value, CultureInfo.InvariantCulture);
 
                                     string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
 
                                     foreach (XmlElement p in shape.GetElementsByTagName("Point"))
                                     {
-                                        double x = Convert.ToDouble(p.Attributes["X"].Value);
-                                        double y = Convert.ToDouble(p.Attributes["Y"].Value);
-                                        double z = Convert.ToDouble(p.Attributes["Z"].Value);
+                                        double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                                        double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                                        double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
 
                                         points.Add(Point.ByCoordinates(x, y, z));
                                     }
@@ -377,30 +392,44 @@ namespace CivilConnection
                                     foreach (XmlElement c in shape.GetElementsByTagName("Code"))
                                     {
                                         string code = c.Attributes["Name"].Value;
+
                                         if (!codes.Contains(code))
                                         {
                                             codes.Add(code);
                                         }
                                     }
 
+                                    //Utils.Log(string.Format("Codes acquired: {0}", string.Join(", ", codes)));
+
                                     points = Point.PruneDuplicates(points);
 
-                                    PolyCurve pc = PolyCurve.ByPoints(points, true);
-
-                                    AppliedSubassemblyShape appSubShape = null;
-
-                                    try
+                                    if (points.Count > 2)  // 20190715
                                     {
-                                        appSubShape = new AppliedSubassemblyShape(name, pc, codes, station);
+                                        PolyCurve pc = PolyCurve.ByPoints(points, true);
+
+                                        //Utils.Log("Polycurve created...");
+
+                                        AppliedSubassemblyShape appSubShape = null;
+
+                                        try
+                                        {
+                                            appSubShape = new AppliedSubassemblyShape(name, pc, codes, station);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} {1} {2}", name, station, ex.Message));
+                                        }
+
+                                        if (appSubShape != null)
+                                        {
+                                            //Utils.Log("AppliedSubassemblyShape added.");
+
+                                            regionShapes.Add(appSubShape);
+                                        }
                                     }
-                                    catch (Exception ex)
+                                    else
                                     {
-                                        Utils.Log(string.Format("ERROR: {0} {1} {2}", name, station, ex.Message));
-                                    }
-
-                                    if (appSubShape != null)
-                                    {
-                                        regionShapes.Add(appSubShape);
+                                        string.Format("ERROR: Not enough points to make a closed loop: {0} {1}", name, station);
                                     }
                                 }
 
@@ -594,15 +623,15 @@ namespace CivilConnection
                                     string subassembly = link.Attributes["SubassemblyName"].Value;
                                     string handle = link.Attributes["Handle"].Value;
                                     string index = link.Attributes["LinkIndex"].Value;
-                                    double station = Convert.ToDouble(link.Attributes["Station"].Value);
+                                    double station = Convert.ToDouble(link.Attributes["Station"].Value, CultureInfo.InvariantCulture);
 
                                     string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
 
                                     foreach (XmlElement p in link.GetElementsByTagName("Point"))
                                     {
-                                        double x = Convert.ToDouble(p.Attributes["X"].Value);
-                                        double y = Convert.ToDouble(p.Attributes["Y"].Value);
-                                        double z = Convert.ToDouble(p.Attributes["Z"].Value);
+                                        double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                                        double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                                        double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
 
                                         points.Add(Point.ByCoordinates(x, y, z));
                                     }

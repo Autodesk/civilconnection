@@ -33,6 +33,7 @@ using Autodesk.DesignScript.Runtime;
 using Autodesk.DesignScript.Geometry;
 
 using System.Xml;
+using System.Globalization;
 
 namespace CivilConnection
 {
@@ -152,9 +153,9 @@ namespace CivilConnection
 
                         foreach (XmlElement p in fe.GetElementsByTagName("Point"))
                         {
-                            double x = Convert.ToDouble(p.Attributes["X"].Value);
-                            double y = Convert.ToDouble(p.Attributes["Y"].Value);
-                            double z = Convert.ToDouble(p.Attributes["Z"].Value);
+                            double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                            double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                            double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
 
                             points.Add(Point.ByCoordinates(x, y, z));
                         }

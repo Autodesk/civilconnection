@@ -31,10 +31,11 @@ using System.Reflection;
 using Autodesk.DesignScript.Runtime;
 using Autodesk.DesignScript.Geometry;
 
-//using Dynamo.Wpf.Nodes;
+using Dynamo.Wpf.Nodes;
 
 using ProtoCore.Properties;
 using System.Xml;
+using System.Globalization;
 
 namespace CivilConnection
 {
@@ -571,15 +572,15 @@ namespace CivilConnection
                                 string subassembly = shape.Attributes["SubassemblyName"].Value;
                                 string handle = shape.Attributes["Handle"].Value;
                                 string index = shape.Attributes["ShapeIndex"].Value;
-                                double station = Convert.ToDouble(shape.Attributes["Station"].Value);
+                                double station = Convert.ToDouble(shape.Attributes["Station"].Value, CultureInfo.InvariantCulture);
 
                                 string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
 
                                 foreach (XmlElement p in shape.GetElementsByTagName("Point"))
                                 {
-                                    double x = Convert.ToDouble(p.Attributes["X"].Value);
-                                    double y = Convert.ToDouble(p.Attributes["Y"].Value);
-                                    double z = Convert.ToDouble(p.Attributes["Z"].Value);
+                                    double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                                    double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                                    double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
 
                                     points.Add(Point.ByCoordinates(x, y, z));
                                 }
@@ -695,15 +696,15 @@ namespace CivilConnection
                                 string subassembly = link.Attributes["SubassemblyName"].Value;
                                 string handle = link.Attributes["Handle"].Value;
                                 string index = link.Attributes["LinkIndex"].Value;
-                                double station = Convert.ToDouble(link.Attributes["Station"].Value);
+                                double station = Convert.ToDouble(link.Attributes["Station"].Value, CultureInfo.InvariantCulture);
 
                                 string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
 
                                 foreach (XmlElement p in link.GetElementsByTagName("Point"))
                                 {
-                                    double x = Convert.ToDouble(p.Attributes["X"].Value);
-                                    double y = Convert.ToDouble(p.Attributes["Y"].Value);
-                                    double z = Convert.ToDouble(p.Attributes["Z"].Value);
+                                    double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                                    double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                                    double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
 
                                     points.Add(Point.ByCoordinates(x, y, z));
                                 }
@@ -721,7 +722,7 @@ namespace CivilConnection
 
                                 points = Point.PruneDuplicates(points);
 
-                                if (points.Count > 1)
+                                if (points.Count > 2)
                                 {
                                     PolyCurve pc = PolyCurve.ByPoints(points);
 
@@ -747,7 +748,7 @@ namespace CivilConnection
                                 }
                                 else
                                 {
-                                    Utils.Log(string.Format("ERROR: Not enough points", ""));
+                                    string.Format("ERROR: Not enough points to make a closed loop: {0} {1}", name, station);
                                 }
                             }
 

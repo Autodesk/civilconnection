@@ -13,9 +13,12 @@
 // permissions and limitations under the License.
 
 
-using Autodesk.AECC.Interop.Land;
 using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.Land;
+
 using Autodesk.DesignScript.Runtime;
+
+
 
 namespace CivilConnection
 {
@@ -158,7 +161,7 @@ namespace CivilConnection
         /// </summary>
         Bool,
         /// <summary>
-        /// Doubel Type
+        /// Double Type
         /// </summary>
         Double,
         /// <summary>
