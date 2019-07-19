@@ -249,7 +249,6 @@ namespace CivilConnection
             return text;
         }
 
-
         /// <summary>
         /// Adds the arc by arc.
         /// </summary>
@@ -262,62 +261,54 @@ namespace CivilConnection
         {
             Utils.Log(string.Format("Utils.AddArcByArc started...", ""));
 
-            // TODO: different orientation of curves from Dynamo to AutoCAD
-            //string layer = "DYN-Shapes";
-            AddLayer(doc, layer);
-            double rotation = 0;
+            // Arcs in AutoCAD are created horizontal
+            // Create the arc and then rotate in 3D to match Dynamo input
 
             Point center = arc.CenterPoint;
             Plane curvePlane = Plane.ByOriginNormal(center, arc.Normal);
-            Vector direction = Vector.ZAxis();
 
-            if (Math.Abs(Math.Abs(arc.Normal.Dot(Vector.ZAxis())) - 1) > 0.0001)
-            {
-                Plane horizontal = Plane.ByOriginNormal(center, Vector.ZAxis());
-                Circle c1 = Circle.ByPlaneRadius(curvePlane);
-                Circle c2 = Circle.ByPlaneRadius(horizontal);
-                var result = c1.Intersect(c2);
-                IList<Point> points = new List<Point>();
-                foreach (Geometry g in result)
-                {
-                    points.Add(g as Point);
-                }
-                Line intersection = Line.ByBestFitThroughPoints(points);
+            // (1) Create horizontal Dynamo Arc from Arc input
+            CoordinateSystem curveCSInverse = curvePlane.ToCoordinateSystem().Inverse();
 
-                direction = intersection.Direction.Normalized();
+            Arc ha = arc.Transform(curveCSInverse) as Arc;  // this arc is the transformed copy of the input in the origin
 
-                rotation = DegToRad(Vector.ZAxis().AngleAboutAxis(arc.Normal, direction));
-                horizontal.Dispose();
-                c1.Dispose();
-                c2.Dispose();
-            }
-
+            // Do not trust the StartAngle and SweepAngle properties..
+            Vector cs = Vector.ByTwoPoints(ha.CenterPoint, ha.StartPoint);
+            Vector ce = Vector.ByTwoPoints(ha.CenterPoint, ha.EndPoint);
+            double start = Vector.XAxis().AngleAboutAxis(cs, Vector.ZAxis());
+            double end = Vector.XAxis().AngleAboutAxis(ce, Vector.ZAxis());
             double radius = arc.Radius;
-            double start = arc.StartAngle;
-            double end = start + arc.SweepAngle;
 
+            // (2) Create the Arc in AutoCAD
+            AddLayer(doc, layer);
             AcadDatabase db = doc as AcadDatabase;
             AcadModelSpace ms = db.ModelSpace;
-            var vlist = new double[] { center.X, center.Y, center.Z };
+            var vlist = new double[] { ha.CenterPoint.X, ha.CenterPoint.Y, ha.CenterPoint.Z };
             AcadArc a = ms.AddArc(vlist, radius, DegToRad(start), DegToRad(end));
             a.Layer = layer;
 
-            center = center.Add(direction);
+            curveCSInverse = curveCSInverse.Inverse();
 
-            var p1 = new double[] { center.X, center.Y, center.Z };
+            a.TransformBy(new double[,] 
+            {
+                {curveCSInverse.XAxis.X / curveCSInverse.XScaleFactor, curveCSInverse.YAxis.X / curveCSInverse.XScaleFactor, curveCSInverse.ZAxis.X / curveCSInverse.XScaleFactor, curveCSInverse.Origin.X},
+                {curveCSInverse.XAxis.Y / curveCSInverse.YScaleFactor, curveCSInverse.YAxis.Y / curveCSInverse.YScaleFactor, curveCSInverse.ZAxis.Y / curveCSInverse.YScaleFactor, curveCSInverse.Origin.Y},
+                {curveCSInverse.XAxis.Z / curveCSInverse.ZScaleFactor, curveCSInverse.YAxis.Z / curveCSInverse.ZScaleFactor, curveCSInverse.ZAxis.Z / curveCSInverse.ZScaleFactor, curveCSInverse.Origin.Z},
+                {0, 0, 0, 1}
+            });
 
-            a.Rotate3D(vlist, p1, rotation);
-
+            // Dispose Dynamo geometry objects
             center.Dispose();
-            direction.Dispose();
-
             curvePlane.Dispose();
+            curveCSInverse.Dispose();
+            ha.Dispose();
+            cs.Dispose();
+            ce.Dispose();
 
             Utils.Log(string.Format("Utils.AddArcByArc completed.", ""));
 
             return a.Handle;
         }
-
 
         /// <summary>
         /// Adds the point to the document.
@@ -910,25 +901,25 @@ namespace CivilConnection
                 temp.Add(pl.Handle);
 
             }
-            else
-            {
-                try
-                {
-                    var geos = curve.Explode();
+            //else
+            //{
+            //    try
+            //    {
+            //        var geos = curve.Explode();
 
-                    if (geos.Length > 0)
-                    {
-                        var curves = geos.Cast<Curve>().ToList();
-                        temp.Add(AddPolylineByCurves(doc, curves, layer));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Utils.Log(string.Format("ERROR: Utils.AddPolylineByCurve {0}", ex.Message));
+            //        if (geos.Length > 0)
+            //        {
+            //            var curves = geos.Cast<Curve>().ToList();
+            //            temp.Add(AddPolylineByCurves(doc, curves, layer));
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Utils.Log(string.Format("ERROR: Utils.AddPolylineByCurve {0}", ex.Message));
 
-                    temp.Add(AddPolylineByPoints(doc, new List<Point>() { curve.StartPoint, curve.EndPoint }, layer));
-                }
-            }
+            //        temp.Add(AddPolylineByPoints(doc, new List<Point>() { curve.StartPoint, curve.EndPoint }, layer));
+            //    }
+            //}
 
             Utils.Log(string.Format("Utils.AddPolylineByCurve completed.", ""));
 
@@ -1420,8 +1411,6 @@ namespace CivilConnection
         {
             Utils.Log(string.Format("Utils.ImportGeometry started...", ""));
 
-            AddLayer(doc, layer);
-
             IList<string> currentHandles = new List<string>();
             IList<string> newHandles = new List<string>();
 
@@ -1474,6 +1463,8 @@ namespace CivilConnection
                 Geometry.ExportToSAT(solidsArray, path);
 
                 doc.Import(path, new double[] { 0, 0, 0 }, 1);
+
+                AddLayer(doc, layer);
 
                 foreach (AcadEntity s in ms)
                 {

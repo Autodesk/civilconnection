@@ -31,7 +31,7 @@ using System.Reflection;
 using Autodesk.DesignScript.Runtime;
 using Autodesk.DesignScript.Geometry;
 
-using Dynamo.Wpf.Nodes;
+//using Dynamo.Wpf.Nodes;
 
 using ProtoCore.Properties;
 using System.Xml;

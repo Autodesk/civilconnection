@@ -74,12 +74,20 @@
       <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\nodes\CoreNodeModels.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="CoreNodeModelsWpf">
+      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\nodes\CoreNodeModelsWpf.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="DSCoreNodes">
       <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\DSCoreNodes.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DynamoCore">
       <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\DynamoCore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DynamoCoreWpf">
+      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\DynamoCoreWpf.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DynamoRevitDS">
