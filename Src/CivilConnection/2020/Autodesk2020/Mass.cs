@@ -977,8 +977,8 @@ namespace CivilConnection
             string name, 
             //Revit.Elements.Category category, 
             string familyTemplate, 
-            Revit.Elements.Material material
-            //bool isVoid, 
+            Revit.Elements.Material material,
+            bool isVoid = false
             //string subcategory = ""
             )
         {
@@ -1097,18 +1097,64 @@ namespace CivilConnection
 
                     try
                     {
-                        foreach (var item in solid.ToRevitType(TessellatedShapeBuilderTarget.Solid, TessellatedShapeBuilderFallback.Abort, material.InternalElement.Id))
+                        bool newFFE = true;
+
+                        foreach (ElementId eid in new FilteredElementCollector(famDoc).OfClass(typeof(FreeFormElement)).ToElementIds())
                         {
-                            if (item is Solid)
+                            FreeFormElement ffe = famDoc.GetElement(eid) as FreeFormElement;
+
+                            if (ffe != null)
                             {
-                                Utils.Log(string.Format("Solid found...", ""));
+                                foreach (var item in solid.ToRevitType(TessellatedShapeBuilderTarget.Solid, TessellatedShapeBuilderFallback.Abort, material.InternalElement.Id))
+                                {
+                                    if (item is Solid)
+                                    {
+                                        Utils.Log(string.Format("Updating Solid...", ""));
 
-                                Solid s = item as Solid;
+                                        Solid s = item as Solid;
 
-                                Autodesk.Revit.DB.FreeFormElement form = FreeFormElement.Create(famDoc, s);
+                                        ffe.UpdateSolidGeometry(s);
 
-                                Utils.Log(string.Format("Solid created.", ""));
+                                        if (isVoid)
+                                        {
+                                            ffe.Parameters.Cast<Autodesk.Revit.DB.Parameter>().First(x => x.Id.IntegerValue.Equals((int)BuiltInParameter.ELEMENT_IS_CUTTING)).Set(1);
+
+                                            famDoc.OwnerFamily.Parameters.Cast<Autodesk.Revit.DB.Parameter>().First(x => x.Id.IntegerValue.Equals((int)BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS)).Set(1);
+                                        }
+
+                                        newFFE = false;
+
+                                        Utils.Log(string.Format("Solid Updated.", ""));
+                                    }
+
+                                    break; // Only the first solid
+                                }
                             }
+                        }
+
+                        if (newFFE)
+                        {
+                            foreach (var item in solid.ToRevitType(TessellatedShapeBuilderTarget.Solid, TessellatedShapeBuilderFallback.Abort, material.InternalElement.Id))
+                            {
+                                // For all the solids
+
+                                if (item is Solid)
+                                {
+                                    Utils.Log(string.Format("New Solid found...", ""));
+
+                                    Solid s = item as Solid;
+
+                                    Autodesk.Revit.DB.FreeFormElement form = FreeFormElement.Create(famDoc, s);
+
+                                    if (isVoid)
+                                    {
+                                        form.Parameters.Cast<Autodesk.Revit.DB.Parameter>().First(x => x.Id.IntegerValue.Equals((int)BuiltInParameter.ELEMENT_IS_CUTTING)).Set(1);
+                                        famDoc.OwnerFamily.Parameters.Cast<Autodesk.Revit.DB.Parameter>().First(x => x.Id.IntegerValue.Equals((int)BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS)).Set(1);
+                                    }
+
+                                    Utils.Log(string.Format("Solid created.", ""));
+                                }
+                            } 
                         }
                     }
                     catch (Exception ex)
