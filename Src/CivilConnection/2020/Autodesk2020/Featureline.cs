@@ -126,7 +126,7 @@ namespace CivilConnection
         {
             get
             {
-                return this._start; //  _baseline.GetStationOffsetElevationByPoint(this._polycurve.StartPoint)[0];
+                return Math.Round(this._start, 3); //  _baseline.GetStationOffsetElevationByPoint(this._polycurve.StartPoint)[0];
             }
         }
         /// <summary>
@@ -139,7 +139,7 @@ namespace CivilConnection
         {
             get
             {
-                return this._end; // _baseline.GetStationOffsetElevationByPoint(this._polycurve.EndPoint)[0];
+                return Math.Round(this._end, 3); // _baseline.GetStationOffsetElevationByPoint(this._polycurve.EndPoint)[0];
             }
         }
         /// <summary>
@@ -710,10 +710,10 @@ namespace CivilConnection
             Utils.Log(string.Format("Featureline.GetStationOffsetElevationByPoint completed.", ""));
 
             return new Dictionary<string, object>
-            {
+            { 
                 { "Station", Math.Round(station, 5) },
                 { "Offset", Math.Round(offset, 5) },
-                { "Elevation", Math.Round(elevation, 5) }
+                { "Elevation", Math.Round(elevation, 5) } 
             };
         }
 
