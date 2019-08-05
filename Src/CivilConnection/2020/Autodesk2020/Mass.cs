@@ -589,16 +589,18 @@ namespace CivilConnection
 
             string famName = string.Format("{0}.rfa", name);
 
-            string famPath = Path.Combine(Path.GetTempPath(), famName);
+            // string famPath = Path.Combine(Path.GetTempPath(), famName);
 
-            try
-            {
-                famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(ex.Message);
-            }
+            string famPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), famName);  // Revit 2020 changed the path to the temp at a session level
+
+            //try
+            //{
+            //    famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Utils.Log(ex.Message);
+            //}
 
             Autodesk.Revit.DB.Family family = null;
 
@@ -1003,16 +1005,18 @@ namespace CivilConnection
 
             var famName = string.Format("{0}.rfa", name);
 
-            string famPath = Path.Combine(Path.GetTempPath(), famName);
+            // string famPath = Path.Combine(Path.GetTempPath(), famName);
 
-            try
-            {
-                famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(string.Format("ERROR: Mass.BySolid {0}", ex.Message));
-            }
+            string famPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), famName);  // Revit 2020 changed the path to the temp at a session level
+
+            //try
+            //{
+            //    famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Utils.Log(ex.Message);
+            //}
 
             Autodesk.Revit.ApplicationServices.Application app = DocumentManager.Instance.CurrentUIApplication.Application;
 
@@ -1236,16 +1240,18 @@ namespace CivilConnection
 
             string famName = string.Format("{0}.rfa", name);
 
-            string famPath = Path.Combine(Path.GetTempPath(), famName);
+            // string famPath = Path.Combine(Path.GetTempPath(), famName);
 
-            try
-            {
-                famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(ex.Message);
-            }
+            string famPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), famName);  // Revit 2020 changed the path to the temp at a session level
+
+            //try
+            //{
+            //    famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Utils.Log(ex.Message);
+            //}
 
             Autodesk.Revit.ApplicationServices.Application app = DocumentManager.Instance.CurrentUIApplication.Application;
 
@@ -1500,16 +1506,18 @@ namespace CivilConnection
 
             string famName = string.Format("{0}.rfa", name);
 
-            string famPath = Path.Combine(Path.GetTempPath(), famName);
+            // string famPath = Path.Combine(Path.GetTempPath(), famName);
 
-            try
-            {
-                famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(ex.Message);
-            }
+            string famPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), famName);  // Revit 2020 changed the path to the temp at a session level
+
+            //try
+            //{
+            //    famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Utils.Log(ex.Message);
+            //}
 
             Autodesk.Revit.ApplicationServices.Application app = DocumentManager.Instance.CurrentUIApplication.Application;
 
@@ -1880,16 +1888,18 @@ namespace CivilConnection
 
             string famName = string.Format("{0}.rfa", name);
 
-            string famPath = Path.Combine(Path.GetTempPath(), famName);
+            // string famPath = Path.Combine(Path.GetTempPath(), famName);
 
-            try
-            {
-                famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(ex.Message);
-            }
+            string famPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), famName);  // Revit 2020 changed the path to the temp at a session level
+
+            //try
+            //{
+            //    famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Utils.Log(ex.Message);
+            //}
 
             Autodesk.Revit.ApplicationServices.Application app = DocumentManager.Instance.CurrentUIApplication.Application;
 
@@ -2438,16 +2448,18 @@ namespace CivilConnection
 
             string famName = string.Format("{0}.rfa", name);
 
-            string famPath = Path.Combine(Path.GetTempPath(), famName);
+            // string famPath = Path.Combine(Path.GetTempPath(), famName);
 
-            try
-            {
-                famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(ex.Message);
-            }
+            string famPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), famName);  // Revit 2020 changed the path to the temp at a session level
+
+            //try
+            //{
+            //    famPath = Path.Combine(Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName), famName);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Utils.Log(ex.Message);
+            //}
 
             Autodesk.Revit.ApplicationServices.Application app = DocumentManager.Instance.CurrentUIApplication.Application;
 
