@@ -52,7 +52,7 @@ namespace CivilPython
 
                 System.Version version = Application.Version;
 
-                string ver = version.ToString().Split(new char[] { '.' })[0];
+                string ver = version.ToString();
 
                 string release = "2020";
 
@@ -61,16 +61,16 @@ namespace CivilPython
                     case "20":
                         release = "2016";
                         break;
-                    case "21":
+                    case "21.0.0.0":
                         release = "2017";
                         break;
-                    case "22":
+                    case "22.0.0.0":
                         release = "2018";
                         break;
-                    case "23":
+                    case "23.0.0.0":
                         release = "2019";
                         break;
-                    case "24":
+                    case "23.1.0.0":
                         release = "2020";
                         break;
                 }
