@@ -269,10 +269,38 @@ namespace CivilConnection
 
                         foreach (XmlElement p in fe.GetElementsByTagName("Point").Cast<XmlElement>().OrderBy(e => Convert.ToDouble(e.Attributes["Station"].Value)))
                         {
-                            double x = Convert.ToDouble(p.Attributes["X"].Value);
-                            double y = Convert.ToDouble(p.Attributes["Y"].Value);
-                            double z = Convert.ToDouble(p.Attributes["Z"].Value);
-                            double b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
+                            double x = 0;
+                            double y = 0;
+                            double z = 0;
+                            double b = 0;
+
+                            try
+                            {
+                                x = Convert.ToDouble(p.Attributes["X"].Value);
+                            }
+                            catch
+                            {}
+
+                            try
+                            {
+                                y = Convert.ToDouble(p.Attributes["Y"].Value);
+                            }
+                            catch
+                            {}
+
+                            try
+                            {
+                                z = Convert.ToDouble(p.Attributes["Z"].Value);  // if Z is NaN because there is no profile associated in that station
+                            }
+                            catch
+                            {}
+
+                            try
+                            {
+                                b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
+                            }
+                            catch
+                            { }
 
                             isBreak += b;
 

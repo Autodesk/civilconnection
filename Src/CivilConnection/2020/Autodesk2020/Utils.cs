@@ -249,6 +249,7 @@ namespace CivilConnection
             return text;
         }
 
+
         /// <summary>
         /// Adds the arc by arc.
         /// </summary>
@@ -1411,6 +1412,15 @@ namespace CivilConnection
         {
             Utils.Log(string.Format("Utils.ImportGeometry started...", ""));
 
+            if (geometry.Length == 0)
+            {
+                Utils.Log(string.Format("No geometry!", ""));
+
+                return null;
+            }
+
+            AddLayer(doc, layer);
+
             IList<string> currentHandles = new List<string>();
             IList<string> newHandles = new List<string>();
 
@@ -1426,13 +1436,38 @@ namespace CivilConnection
                 }
             }
 
-            IList<Geometry> solids = new List<Geometry>();
-
             foreach (Geometry g in geometry)
             {
                 if (g is Solid)
                 {
+                    IList<Geometry> solids = new List<Geometry>();
+
                     solids.Add(g);
+
+                    var solidsArray = solids.ToArray();
+
+                    string path = Path.Combine(Path.GetTempPath(), "CivilConnection.sat");
+
+                    Geometry.ExportToSAT(solidsArray, path);
+
+                    doc.Import(path, new double[] { 0, 0, 0 }, 1);
+
+                    foreach (AcadEntity s in ms)
+                    {
+                        if (s.EntityName.Contains("Solid") || s.EntityName.Contains("Surface"))
+                        {
+                            if (!currentHandles.Contains(s.Handle))
+                            {
+                                s.Layer = layer;
+                                newHandles.Add(s.Handle);
+                            }
+                        }
+                    }
+
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
                 }
 
                 else if (g is Arc)
@@ -1452,38 +1487,6 @@ namespace CivilConnection
                     Point p = g as Point;
                     newHandles.Add(AddPointByPoint(doc, p, layer));
                 }
-            }
-
-            if (solids.Count > 0)
-            {
-                var solidsArray = solids.ToArray();
-
-                string path = Path.Combine(Path.GetTempPath(), "CivilConnection.sat");
-
-                Geometry.ExportToSAT(solidsArray, path);
-
-                doc.Import(path, new double[] { 0, 0, 0 }, 1);
-
-                AddLayer(doc, layer);
-
-                foreach (AcadEntity s in ms)
-                {
-                    if (s.EntityName.Contains("Solid") || s.EntityName.Contains("Surface"))
-                    {
-                        if (!currentHandles.Contains(s.Handle))
-                        {
-                            s.Layer = layer;
-                            newHandles.Add(s.Handle);
-                        }
-                    }
-                }
-
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-
-                //File.Delete(path); 
             }
 
             Utils.Log(string.Format("Utils.ImportGeometry completed.", ""));
