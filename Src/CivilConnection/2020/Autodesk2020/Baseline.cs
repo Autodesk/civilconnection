@@ -278,29 +278,37 @@ namespace CivilConnection
                             {
                                 x = Convert.ToDouble(p.Attributes["X"].Value);
                             }
-                            catch
-                            {}
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} X {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
 
                             try
                             {
                                 y = Convert.ToDouble(p.Attributes["Y"].Value);
                             }
-                            catch
-                            {}
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} Y {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
 
                             try
                             {
                                 z = Convert.ToDouble(p.Attributes["Z"].Value);  // if Z is NaN because there is no profile associated in that station
                             }
-                            catch
-                            {}
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} Z {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
 
                             try
                             {
                                 b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
                             }
-                            catch
-                            { }
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} IsBreak {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
 
                             isBreak += b;
 
