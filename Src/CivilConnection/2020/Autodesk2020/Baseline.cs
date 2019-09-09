@@ -269,10 +269,46 @@ namespace CivilConnection
 
                         foreach (XmlElement p in fe.GetElementsByTagName("Point").Cast<XmlElement>().OrderBy(e => Convert.ToDouble(e.Attributes["Station"].Value)))
                         {
-                            double x = Convert.ToDouble(p.Attributes["X"].Value);
-                            double y = Convert.ToDouble(p.Attributes["Y"].Value);
-                            double z = Convert.ToDouble(p.Attributes["Z"].Value);
-                            double b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
+                            double x = 0;
+                            double y = 0;
+                            double z = 0;
+                            double b = 0;
+
+                            try
+                            {
+                                x = Convert.ToDouble(p.Attributes["X"].Value);
+                            }
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} X {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
+
+                            try
+                            {
+                                y = Convert.ToDouble(p.Attributes["Y"].Value);
+                            }
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} Y {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
+
+                            try
+                            {
+                                z = Convert.ToDouble(p.Attributes["Z"].Value);  // if Z is NaN because there is no profile associated in that station
+                            }
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} Z {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
+
+                            try
+                            {
+                                b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
+                            }
+                            catch (Exception ex)
+                            {
+                                Utils.Log(string.Format("ERROR: {0} IsBreak {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                            }
 
                             isBreak += b;
 

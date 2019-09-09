@@ -380,9 +380,37 @@ namespace CivilConnection
 
                                     foreach (XmlElement p in shape.GetElementsByTagName("Point"))
                                     {
-                                        double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
-                                        double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
-                                        double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
+                                        double x = 0;
+                                        double y = 0;
+                                        double z = 0;
+
+                                        try
+                                        {
+                                            x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} X {1}", station, ex.Message));
+                                        }
+                                        try
+                                        {
+                                            y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} Y {1}", station, ex.Message));
+                                        }
+
+                                        try
+                                        {
+                                            z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);  // When Z is NaN because the profile is not defined at station
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} Z {1}", station, ex.Message));
+
+                                            continue;
+                                        }
 
                                         points.Add(Point.ByCoordinates(x, y, z));
                                     }
@@ -629,9 +657,36 @@ namespace CivilConnection
 
                                     foreach (XmlElement p in link.GetElementsByTagName("Point"))
                                     {
-                                        double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
-                                        double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
-                                        double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
+                                        double x = 0;
+                                        double y = 0;
+                                        double z = 0;
+
+                                        try
+                                        {
+                                            x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} X {1}", station, ex.Message));
+                                        }
+                                        try
+                                        {
+                                            y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} Y {1}", station, ex.Message));
+                                        }
+
+                                        try
+                                        {
+                                            z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);  // When Z is NaN because the profile is not defined at station
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} Z {1}", station, ex.Message));
+                                            continue;
+                                        }
 
                                         points.Add(Point.ByCoordinates(x, y, z));
                                     }
