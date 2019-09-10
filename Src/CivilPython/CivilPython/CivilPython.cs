@@ -56,24 +56,28 @@ namespace CivilPython
 
                 string release = "2020";
 
-                switch (ver)
-                {
-                    case "20":
-                        release = "2016";
-                        break;
-                    case "21.0.0.0":
-                        release = "2017";
-                        break;
-                    case "22.0.0.0":
-                        release = "2018";
-                        break;
-                    case "23.0.0.0":
-                        release = "2019";
-                        break;
-                    case "23.1.0.0":
-                        release = "2020";
-                        break;
-                }
+                // 20190910 --- Rob Todd Suggestion to catch AutoCAD installation different from C drive
+
+                release = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetProcessesByName("acad").FirstOrDefault().MainModule.FileName);
+
+                //switch (ver)
+                //{
+                //    case "20":
+                //        release = "2016";
+                //        break;
+                //    case "21.0.0.0":
+                //        release = "2017";
+                //        break;
+                //    case "22.0.0.0":
+                //        release = "2018";
+                //        break;
+                //    case "23.0.0.0":
+                //        release = "2019";
+                //        break;
+                //    case "23.1.0.0":
+                //        release = "2020";
+                //        break;
+                //}
 
                 if (!cmdLine)
                 {
@@ -103,15 +107,23 @@ namespace CivilPython
 
                 if (path != "")
                 {
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\acmgd.dll", release)));
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\acdbmgd.dll", release)));
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\accoremgd.dll", release)));
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\ACA\AecBaseMgd.dll", release)));
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\ACA\AecPropDataMgd.dll", release)));
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\C3D\AeccDbMgd.dll", release)));
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\C3D\AeccPressurePipesMgd.dll", release)));
-                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\acdbmgdbrep.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\acmgd.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\acdbmgd.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\accoremgd.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\ACA\AecBaseMgd.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\ACA\AecPropDataMgd.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\C3D\AeccDbMgd.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\C3D\AeccPressurePipesMgd.dll", release)));
+                    //ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"C:\Program Files\Autodesk\AutoCAD {0}\acdbmgdbrep.dll", release)));
 
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\acmgd.dll", release)));
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\acdbmgd.dll", release)));
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\accoremgd.dll", release)));
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\ACA\AecBaseMgd.dll", release)));
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\ACA\AecPropDataMgd.dll", release)));
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\C3D\AeccDbMgd.dll", release)));
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\C3D\AeccPressurePipesMgd.dll", release)));
+                    ipy.LoadAssembly(Assembly.LoadFrom(string.Format(@"{0}\acdbmgdbrep.dll", release)));
 
                     ScriptSource source = engine.CreateScriptSourceFromFile(path);
                     CompiledCode compiledCode = source.Compile();
@@ -229,7 +241,14 @@ namespace CivilPython
 
                                 XmlElement featureline = xmlDoc.CreateElement("FeatureLine");
                                 featureline.SetAttribute("Name", f.Name);
-                                featureline.SetAttribute("Style", f.StyleName);
+                                if (f.StyleName != null)
+                                {
+                                    featureline.SetAttribute("Style", f.StyleName);
+                                }
+                                else
+                                {
+                                    featureline.SetAttribute("Style", "");
+                                }
                                 featureline.SetAttribute("Handle", f.Handle.ToString());
                                 featurelines.AppendChild(featureline);
 
@@ -349,39 +368,62 @@ namespace CivilPython
 
                                     foreach (string cn in b.MainBaselineFeatureLines.FeatureLineCollectionMap.CodeNames())
                                     {
-                                        foreach (Autodesk.Civil.DatabaseServices.CorridorFeatureLine cfl in b.MainBaselineFeatureLines.FeatureLineCollectionMap[cn])
+                                        try
                                         {
-                                            XmlElement featureline = xmlDoc.CreateElement("FeatureLine");
-                                            featureline.SetAttribute("Code", cfl.CodeName);
-                                            featureline.SetAttribute("Style", cfl.StyleName);
-                                            featurelines.AppendChild(featureline);
-
-                                            XmlElement points = xmlDoc.CreateElement("Points");
-                                            featureline.AppendChild(points);
-
-                                            foreach (Autodesk.Civil.DatabaseServices.FeatureLinePoint cflp in cfl.FeatureLinePoints)
+                                            foreach (Autodesk.Civil.DatabaseServices.CorridorFeatureLine cfl in b.MainBaselineFeatureLines.FeatureLineCollectionMap[cn])
                                             {
-                                                double offset = cflp.Offset;
-                                                double station = cflp.Station;
-                                                Autodesk.AutoCAD.Geometry.Point3d p3d = cflp.XYZ;
+                                                try
+                                                {
+                                                    XmlElement featureline = xmlDoc.CreateElement("FeatureLine");
+                                                    featureline.SetAttribute("Code", cn);
+                                                    if (cfl.StyleName != null)
+                                                    {
+                                                        featureline.SetAttribute("Style", cfl.StyleName);
+                                                    }
+                                                    else 
+                                                    {
+                                                        featureline.SetAttribute("Style", "");
+                                                    }
+                                                    
+                                                    featurelines.AppendChild(featureline);
 
-                                                XmlElement point = xmlDoc.CreateElement("Point");
-                                                point.SetAttribute("X", p3d.X.ToString());
-                                                point.SetAttribute("Y", p3d.Y.ToString());
-                                                point.SetAttribute("Z", p3d.Z.ToString());
-                                                point.SetAttribute("Station", station.ToString());
-                                                point.SetAttribute("Offset", offset.ToString());
-                                                point.SetAttribute("IsBreak", cflp.IsBreak ? "1" : "0");
-                                                points.AppendChild(point);
+                                                    XmlElement points = xmlDoc.CreateElement("Points");
+                                                    featureline.AppendChild(points);
+
+                                                    foreach (Autodesk.Civil.DatabaseServices.FeatureLinePoint cflp in cfl.FeatureLinePoints)
+                                                    {
+                                                        double offset = cflp.Offset;
+                                                        double station = cflp.Station;
+                                                        Autodesk.AutoCAD.Geometry.Point3d p3d = cflp.XYZ;
+
+                                                        XmlElement point = xmlDoc.CreateElement("Point");
+                                                        point.SetAttribute("X", p3d.X.ToString());
+                                                        point.SetAttribute("Y", p3d.Y.ToString());
+                                                        point.SetAttribute("Z", p3d.Z.ToString());
+                                                        point.SetAttribute("Station", station.ToString());
+                                                        point.SetAttribute("Offset", offset.ToString());
+                                                        point.SetAttribute("IsBreak", cflp.IsBreak ? "1" : "0");
+                                                        points.AppendChild(point);
+                                                    }
+
+                                                    double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
+                                                    double o = Convert.ToDouble(points.FirstChild.Attributes["Offset"].Value);
+
+                                                    var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>()
+                                                        .First(x => x.StartStation < s && x.EndStation > s);
+
+                                                    featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
+                                                    featureline.SetAttribute("Side", o < 0 ? "-1" : "1");
+                                                }
+                                                catch (System.Exception ex)
+                                                {
+                                                    // System.Windows.Forms.MessageBox.Show(string.Format("ERROR 1: {0}", ex.Message));
+                                                }
                                             }
-
-                                            double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
-                                            double o = Convert.ToDouble(points.FirstChild.Attributes["Offset"].Value);
-
-                                            var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>().First(x => x.StartStation < s && x.EndStation > s);
-
-                                            featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
-                                            featureline.SetAttribute("Side", o < 0 ? "-1" : "1");
+                                        }
+                                        catch (System.Exception ex)
+                                        {
+                                            // System.Windows.Forms.MessageBox.Show(string.Format("ERROR 2: {0}", ex.Message));
                                         }
                                     }
 
@@ -429,39 +471,60 @@ namespace CivilPython
 
                                 foreach (string cn in b.MainBaselineFeatureLines.FeatureLineCollectionMap.CodeNames())
                                 {
-                                    foreach (Autodesk.Civil.DatabaseServices.CorridorFeatureLine cfl in b.MainBaselineFeatureLines.FeatureLineCollectionMap[cn])
+                                    try
                                     {
-                                        XmlElement featureline = xmlDoc.CreateElement("FeatureLine");
-                                        featureline.SetAttribute("Code", cfl.CodeName);
-                                        featureline.SetAttribute("Style", cfl.StyleName);
-                                        featurelines.AppendChild(featureline);
-
-                                        XmlElement points = xmlDoc.CreateElement("Points");
-                                        featureline.AppendChild(points);
-
-                                        foreach (Autodesk.Civil.DatabaseServices.FeatureLinePoint cflp in cfl.FeatureLinePoints)
+                                        foreach (Autodesk.Civil.DatabaseServices.CorridorFeatureLine cfl in b.MainBaselineFeatureLines.FeatureLineCollectionMap[cn])
                                         {
-                                            double offset = cflp.Offset;
-                                            double station = cflp.Station;
-                                            Autodesk.AutoCAD.Geometry.Point3d p3d = cflp.XYZ;
+                                            try
+                                            {
+                                                XmlElement featureline = xmlDoc.CreateElement("FeatureLine");
+                                                featureline.SetAttribute("Code", cn);
+                                                if (cfl.StyleName != null)
+                                                {
+                                                    featureline.SetAttribute("Style", cfl.StyleName);
+                                                }
+                                                else
+                                                {
+                                                    featureline.SetAttribute("Style", "");
+                                                }
+                                                featurelines.AppendChild(featureline);
 
-                                            XmlElement point = xmlDoc.CreateElement("Point");
-                                            point.SetAttribute("X", p3d.X.ToString());
-                                            point.SetAttribute("Y", p3d.Y.ToString());
-                                            point.SetAttribute("Z", p3d.Z.ToString());
-                                            point.SetAttribute("Station", station.ToString());
-                                            point.SetAttribute("Offset", offset.ToString());
-                                            point.SetAttribute("IsBreak", cflp.IsBreak ? "1" : "0");
-                                            points.AppendChild(point);
+                                                XmlElement points = xmlDoc.CreateElement("Points");
+                                                featureline.AppendChild(points);
+
+                                                foreach (Autodesk.Civil.DatabaseServices.FeatureLinePoint cflp in cfl.FeatureLinePoints)
+                                                {
+                                                    double offset = cflp.Offset;
+                                                    double station = cflp.Station;
+                                                    Autodesk.AutoCAD.Geometry.Point3d p3d = cflp.XYZ;
+
+                                                    XmlElement point = xmlDoc.CreateElement("Point");
+                                                    point.SetAttribute("X", p3d.X.ToString());
+                                                    point.SetAttribute("Y", p3d.Y.ToString());
+                                                    point.SetAttribute("Z", p3d.Z.ToString());
+                                                    point.SetAttribute("Station", station.ToString());
+                                                    point.SetAttribute("Offset", offset.ToString());
+                                                    point.SetAttribute("IsBreak", cflp.IsBreak ? "1" : "0");
+                                                    points.AppendChild(point);
+                                                }
+
+                                                double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
+                                                double o = Convert.ToDouble(points.FirstChild.Attributes["Offset"].Value);
+
+                                                var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>().First(x => x.StartStation < s && x.EndStation > s);
+
+                                                featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
+                                                featureline.SetAttribute("Side", o < 0 ? "-1" : "1");
+                                            }
+                                            catch (System.Exception ex)
+                                            {
+                                                //System.Windows.Forms.MessageBox.Show(string.Format("ERROR 3: {0}", ex.Message));
+                                            }
                                         }
-
-                                        double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
-                                        double o = Convert.ToDouble(points.FirstChild.Attributes["Offset"].Value);
-
-                                        var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>().First(x => x.StartStation < s && x.EndStation > s);
-
-                                        featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
-                                        featureline.SetAttribute("Side", o < 0 ? "-1" : "1");
+                                    }
+                                    catch (System.Exception ex)
+                                    {
+                                        //System.Windows.Forms.MessageBox.Show(string.Format("ERROR 4: {0}", ex.Message));
                                     }
                                 }
 
