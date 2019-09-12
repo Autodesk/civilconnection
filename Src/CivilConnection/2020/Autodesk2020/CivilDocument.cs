@@ -267,10 +267,12 @@ namespace CivilConnection
         }
 
         /// <summary>
-        /// 
+        /// Get surface by name.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">The name of surface</param>
+        /// <returns>
+        /// Civil Surface
+        /// </returns>
         public CivilSurface GetSurfaceByName(string name)
         {
             return this.GetSurfaces().First(x => x.Name == name);

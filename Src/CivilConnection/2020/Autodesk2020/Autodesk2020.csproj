@@ -146,6 +146,7 @@
     <Compile Include="CableTray.cs" />
     <Compile Include="CivilApplication.cs" />
     <Compile Include="CivilDocument.cs" />
+    <Compile Include="CivilSurface.cs" />
     <Compile Include="Conduit.cs" />
     <Compile Include="Connector.cs" />
     <Compile Include="Corridor.cs" />

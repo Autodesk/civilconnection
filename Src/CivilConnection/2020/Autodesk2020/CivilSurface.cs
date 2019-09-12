@@ -51,10 +51,12 @@ namespace CivilConnection
 
         #region PUBLIC METHODS
         /// <summary>
-        /// 
+        /// Get elevation of surface at points
         /// </summary>
         /// <param name="points"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// The List of Elevations
+        /// </returns>
         public List<object> GetElevationAtPoint(List<Point> points)
         {
             List<object> elevations = new List<object>();
@@ -62,7 +64,7 @@ namespace CivilConnection
             {
                 try
                 {
-                    double elevation = Math.Round(this._surface.FindElevationAtXY(point.X, point.Y), 3);
+                    double elevation = Math.Round(this._surface.FindElevationAtXY(point.X, point.Y), 5);
                     elevations.Add(elevation);
                 }
 
@@ -79,7 +81,9 @@ namespace CivilConnection
         /// Gets all surface points along line
         /// </summary>
         /// <param name="lines"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// The List of Points
+        /// </returns>
         public List<List<object>> GetElevationsAlongLine(List<Line> lines)
         {
             List<List<object>> pointsOnLine = new List<List<object>>();
@@ -106,7 +110,7 @@ namespace CivilConnection
         /// Get all surface points
         /// </summary>
         /// <returns>
-        /// Point(X,Y,Z)
+        /// The List of Points
         /// </returns>
         public List<Point> GetSurfacePoints()
         {
@@ -125,18 +129,18 @@ namespace CivilConnection
         /// <summary>
         /// Gets all surface points between lower and upper limit point
         /// </summary>
-        /// <param name="LowerLeftPoint"></param>
-        /// <param name="UpperRightPoint"></param>
+        /// <param name="lowerLeftPoint"></param>
+        /// <param name="upperRightPoint"></param>
         /// <returns>
-        /// Point(X, Y, Z)
+        /// The List of Points
         /// </returns>
-        public List<Point> GetPointsBetweenLowerUpperLimits(Point LowerLeftPoint, Point UpperRightPoint)
+        public List<Point> GetPointsBetweenLowerUpperLimits(Point lowerLeftPoint, Point upperRightPoint)
         {
             List<Point> points = new List<Point>();
-            double minX = LowerLeftPoint.X;
-            double minY = LowerLeftPoint.Y;
-            double maxX = UpperRightPoint.X;
-            double maxY = UpperRightPoint.Y;
+            double minX = lowerLeftPoint.X;
+            double minY = lowerLeftPoint.Y;
+            double maxX = upperRightPoint.X;
+            double maxY = upperRightPoint.Y;
 
             List<Point> surfacePoints = this.GetSurfacePoints();
 
@@ -152,10 +156,12 @@ namespace CivilConnection
         }
 
         /// <summary>
-        /// Get surface points inside and along periphery of closed polygon
+        /// Get surface points inside closed polygon
         /// </summary>
         /// <param name="lines"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// The List of Points
+        /// </returns>
         public List<Point> GetPointsInsidePolygon(List<Line> lines)
         {
             List<Point> pointList = new List<Point>();
@@ -195,58 +201,64 @@ namespace CivilConnection
 
             List<Point> pointsBounding = GetPointsBetweenLowerUpperLimits(minPoint, maxPoint);
 
-            foreach (Point p in pointsBounding)
+            if (pointsBounding.Count != 0)
             {
-                Point p1, p2;
-
-                bool inside = false;
-
-                if (pointList.Count < 3)
+                foreach (Point p in pointsBounding)
                 {
-                    pointsInside.Add(null);
-                }
-                else
-                {
-                    Point oldPoint = Point.ByCoordinates(pointList[pointList.Count - 1].X, pointList[pointList.Count - 1].Y);
+                    Point p1, p2;
 
-                    for (int j = 0; j < pointList.Count; j++)
+                    bool inside = false;
+
+                    if (pointList.Count < 3)
                     {
-                        Point newPoint = Point.ByCoordinates(pointList[j].X, pointList[j].Y);
-
-                        if (newPoint.X > oldPoint.X)
-                        {
-                            p1 = oldPoint;
-                            p2 = newPoint;
-                        }
-                        else
-                        {
-                            p1 = newPoint;
-                            p2 = oldPoint;
-                        }
-
-                        if ((newPoint.X < p.X) == (p.X <= oldPoint.X) && (p.Y - (long)p1.Y) * (p2.X - p1.X) < (p2.Y - (long)p1.Y) * (p.X - p1.X))
-                        {
-                            inside = !inside;
-                        }
-
-                        oldPoint = newPoint;
-
+                        pointsInside.Add(null);
                     }
-                    if (inside == true)
+                    else
                     {
-                        pointsInside.Add(p);
-                    }
-                }
+                        Point oldPoint = Point.ByCoordinates(pointList[pointList.Count - 1].X, pointList[pointList.Count - 1].Y);
 
+                        for (int j = 0; j < pointList.Count; j++)
+                        {
+                            Point newPoint = Point.ByCoordinates(pointList[j].X, pointList[j].Y);
+
+                            if (newPoint.X > oldPoint.X)
+                            {
+                                p1 = oldPoint;
+                                p2 = newPoint;
+                            }
+                            else
+                            {
+                                p1 = newPoint;
+                                p2 = oldPoint;
+                            }
+
+                            if ((newPoint.X < p.X) == (p.X <= oldPoint.X) && (p.Y - (long)p1.Y) * (p2.X - p1.X) < (p2.Y - (long)p1.Y) * (p.X - p1.X))
+                            {
+                                inside = !inside;
+                            }
+
+                            oldPoint = newPoint;
+
+                        }
+                        if (inside == true)
+                        {
+                            pointsInside.Add(p);
+                        }
+                    }
+
+                }
             }
-
 
             return pointsInside;
         }
+        
+                
         /// <summary>
-        /// 
+        /// Public textual representation in the Dynamo node preview.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
         public override string ToString()
         {
             return string.Format("Surface(Name = {0})", this._surface.Name);
