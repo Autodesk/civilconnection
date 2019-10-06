@@ -380,15 +380,17 @@ namespace CivilPython
                                                     {
                                                         featureline.SetAttribute("Style", cfl.StyleName);
                                                     }
-                                                    else 
+                                                    else
                                                     {
                                                         featureline.SetAttribute("Style", "");
                                                     }
-                                                    
+
                                                     featurelines.AppendChild(featureline);
 
                                                     XmlElement points = xmlDoc.CreateElement("Points");
                                                     featureline.AppendChild(points);
+
+                                                    double totalStation = 0;
 
                                                     foreach (Autodesk.Civil.DatabaseServices.FeatureLinePoint cflp in cfl.FeatureLinePoints)
                                                     {
@@ -403,21 +405,72 @@ namespace CivilPython
                                                         point.SetAttribute("Station", station.ToString());
                                                         point.SetAttribute("Offset", offset.ToString());
                                                         point.SetAttribute("IsBreak", cflp.IsBreak ? "1" : "0");
+
+                                                        var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>()
+                                                       .First(x => x.StartStation < station && x.EndStation > station
+                                                           || Math.Abs(x.StartStation - station) < 0.0001
+                                                           || Math.Abs(x.EndStation - station) < 0.0001);
+
+                                                        point.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
                                                         points.AppendChild(point);
+                                                        totalStation += station;
                                                     }
 
-                                                    double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
+                                                    //double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
+                                                    // double s = totalStation / points.ChildNodes.Count;
                                                     double o = Convert.ToDouble(points.FirstChild.Attributes["Offset"].Value);
-
-                                                    var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>()
-                                                        .First(x => x.StartStation < s && x.EndStation > s);
-
-                                                    featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
                                                     featureline.SetAttribute("Side", o < 0 ? "-1" : "1");
+
+                                                    //Autodesk.Civil.DatabaseServices.BaselineRegion reg = null; //  b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>().First(x => x.StartStation < s && x.EndStation > s);
+
+                                                    //foreach (var br in b.BaselineRegions)
+                                                    //{
+                                                    //    if (br.StartStation < s && br.EndStation > s)
+                                                    //    {
+                                                    //        reg = br;
+                                                    //        break;
+                                                    //    }
+                                                    //}
+
+                                                    //if (reg != null)
+                                                    //{
+                                                    //    if (b.BaselineRegions.Contains(reg))
+                                                    //    {
+                                                    //        try
+                                                    //        {
+                                                    //            //featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
+                                                    //            featureline.SetAttribute("Side", o < 0 ? "-1" : "1");
+                                                    //        }
+                                                    //        catch (System.Exception)
+                                                    //        {
+                                                    //            //featureline.SetAttribute("RegionIndex", "-1");  // this is wrong on purpose
+                                                    //            featureline.SetAttribute("Side", "1");
+                                                    //        }
+                                                    //    }
+                                                    //    else
+                                                    //    {
+                                                    //        //featureline.SetAttribute("RegionIndex", "-1");  // this is wrong on purpose
+                                                    //        featureline.SetAttribute("Side", "1");
+                                                    //    }
+                                                    //}
+                                                    //else 
+                                                    //{
+                                                    //    //featureline.SetAttribute("RegionIndex", "-1");  // this is wrong on purpose
+                                                    //    featureline.SetAttribute("Side", "1");
+                                                    //}
+
+                                                    //if (!featureline.HasAttribute("RegionIndex"))
+                                                    //{
+                                                    //    featureline.SetAttribute("RegionIndex", "-1");  // this is wrong on purpose
+                                                    //}
+                                                    if (!featureline.HasAttribute("Side"))
+                                                    {
+                                                        featureline.SetAttribute("Side", "1");  // this is wrong on purpose
+                                                    }
                                                 }
                                                 catch (System.Exception ex)
                                                 {
-                                                    // System.Windows.Forms.MessageBox.Show(string.Format("ERROR 1: {0}", ex.Message));
+                                                    System.Windows.Forms.MessageBox.Show(string.Format("ERROR 1: {0}", ex.Message));
                                                 }
                                             }
                                         }
@@ -453,6 +506,8 @@ namespace CivilPython
                             XmlElement corridor = xmlDoc.CreateElement("Corridor");
                             corridors.AppendChild(corridor);
                             corridor.SetAttribute("Name", corr.Name);
+
+                            path = path.Replace(".xml", string.Format("_{0}.xml", corr.Name));
 
                             XmlElement baselines = xmlDoc.CreateElement("Baselines");
                             corridor.AppendChild(baselines);
@@ -505,15 +560,23 @@ namespace CivilPython
                                                     point.SetAttribute("Station", station.ToString());
                                                     point.SetAttribute("Offset", offset.ToString());
                                                     point.SetAttribute("IsBreak", cflp.IsBreak ? "1" : "0");
+
+                                                    var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>()
+                                                        .First(x => x.StartStation < station && x.EndStation > station 
+                                                            || Math.Abs(x.StartStation - station) < 0.0001 
+                                                            || Math.Abs(x.EndStation - station) < 0.0001);
+
+                                                    point.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
+
                                                     points.AppendChild(point);
                                                 }
 
-                                                double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
+                                                //double s = Convert.ToDouble(points.ChildNodes[points.ChildNodes.Count / 2].Attributes["Station"].Value);
                                                 double o = Convert.ToDouble(points.FirstChild.Attributes["Offset"].Value);
 
-                                                var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>().First(x => x.StartStation < s && x.EndStation > s);
+                                                //var reg = b.BaselineRegions.Cast<Autodesk.Civil.DatabaseServices.BaselineRegion>().First(x => x.StartStation < s && x.EndStation > s);
 
-                                                featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
+                                                //featureline.SetAttribute("RegionIndex", b.BaselineRegions.IndexOf(reg).ToString());
                                                 featureline.SetAttribute("Side", o < 0 ? "-1" : "1");
                                             }
                                             catch (System.Exception ex)
@@ -629,12 +692,12 @@ namespace CivilPython
                                     }
                                 }
 
-                                if (toRebuild)  
+                                if (toRebuild)
                                 {
                                     corr.UpgradeOpen();
                                     corr.Rebuild();
                                     corr.DowngradeOpen();
-                                } 
+                                }
                             }
 
                             XmlElement corridor = xmlDoc.CreateElement("Corridor");
@@ -1057,6 +1120,127 @@ namespace CivilPython
                                 }
 
                                 ++blCounter;
+                            }
+                        }
+                    }
+                }
+            }
+
+            xmlDoc.Save(path);
+        }
+
+        [CommandMethod("-ExportSurfaceToXML")]
+        public void ExportSurfaceToXml()
+        {
+            string path = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "Surface.xml");
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            CivilDocument cdoc = CivilApplication.ActiveDocument;
+
+            short fd = (short)Application.GetSystemVariable("FILEDIA");
+
+            string surfHandle = "";
+
+            try
+            {
+                PromptStringOptions pso = new PromptStringOptions("\nEnter Surface Handle");
+                PromptResult resSurf = doc.Editor.GetString(pso);
+                surfHandle = resSurf.StringResult;
+            }
+            catch { }
+
+            Application.SetSystemVariable("FILEDIA", fd);
+
+            XmlDocument xmlDoc = new XmlDocument();
+
+            XmlElement docElement = xmlDoc.CreateElement("Document");
+            xmlDoc.AppendChild(docElement);
+
+            XmlElement surfaces = xmlDoc.CreateElement("Surfaces");
+            docElement.AppendChild(surfaces);
+
+            docElement.SetAttribute("Name", doc.Name);
+
+            using (doc.LockDocument())
+            {
+                using (Database db = doc.Database)
+                {
+                    using (Transaction t = db.TransactionManager.StartTransaction())
+                    {
+                        foreach (ObjectId oid in cdoc.GetSurfaceIds())
+                        {
+                            Autodesk.Civil.DatabaseServices.TinSurface surf = t.GetObject(oid, OpenMode.ForRead) as Autodesk.Civil.DatabaseServices.TinSurface;
+
+                            if (!string.IsNullOrWhiteSpace(surfHandle) && !string.IsNullOrEmpty(surfHandle))
+                            {
+                                if (surf.Handle.ToString() != surfHandle)
+                                {
+                                    continue;
+                                }
+                            }
+
+                            var visibleTriangles = surf.GetTriangles(false);
+
+                            XmlElement surface = xmlDoc.CreateElement("Surface");
+                            surfaces.AppendChild(surface);
+                            surface.SetAttribute("Name", surf.Name);
+
+                            XmlElement vertices = xmlDoc.CreateElement("Vertices");
+                            surface.AppendChild(vertices);
+
+                            Dictionary<Autodesk.Civil.DatabaseServices.TinSurfaceTriangle, List<string>> triangleDict = new Dictionary<Autodesk.Civil.DatabaseServices.TinSurfaceTriangle, List<string>>();
+
+                            for (int vCounter = 0; vCounter < surf.Vertices.Count; ++vCounter)
+                            {
+                                Autodesk.Civil.DatabaseServices.TinSurfaceVertex v = surf.Vertices.ElementAt(vCounter);
+
+                                Autodesk.AutoCAD.Geometry.Point3d p3d = v.Location;
+
+                                foreach (var tri in v.Triangles)
+                                {
+                                    if (!visibleTriangles.Contains(tri))
+                                    {
+                                        continue;
+                                    }
+
+                                    if (triangleDict.Keys.Contains(tri))
+                                    {
+                                        if (!triangleDict[tri].Contains(vCounter.ToString()) && triangleDict[tri].Count < 3)
+                                        {
+                                            triangleDict[tri].Add(vCounter.ToString());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        triangleDict.Add(tri, new List<string>() { vCounter.ToString() });
+                                    }
+                                }
+
+                                XmlElement vertex = xmlDoc.CreateElement("Vertex");
+                                vertices.AppendChild(vertex);
+                                vertex.SetAttribute("X", p3d.X.ToString());
+                                vertex.SetAttribute("Y", p3d.Y.ToString());
+                                vertex.SetAttribute("Z", p3d.Z.ToString());
+                                vertex.SetAttribute("id", vCounter.ToString());
+                            }
+
+                            XmlElement triangles = xmlDoc.CreateElement("Triangles");
+                            surface.AppendChild(triangles);
+
+                            foreach (var tri in triangleDict.Keys)
+                            {
+                                XmlElement tria = xmlDoc.CreateElement("Triangle");
+                                triangles.AppendChild(tria);
+
+                                for (int i = 0; i < 3; ++i)
+                                {
+                                    tria.SetAttribute(string.Format("V{0}", i), triangleDict[tri][i]);
+                                }
                             }
                         }
                     }

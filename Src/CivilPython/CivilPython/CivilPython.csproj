@@ -67,6 +67,14 @@
       <HintPath>C:\Program Files\Autodesk\AutoCAD 2017\ACA\AecPropDataMgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Autodesk.Map.Platform">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\Map\Autodesk.Map.Platform.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Autodesk.Map.Platform.Utils">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\Map\Autodesk.Map.Platform.Utils.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="IronPython, Version=2.7.0.40, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\IronPython 2.7\Platforms\Net40\IronPython.dll</HintPath>
@@ -102,6 +110,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\IronPython 2.7\Platforms\Net40\Microsoft.Scripting.Metadata.dll</HintPath>
     </Reference>
+    <Reference Include="OSGeo.MapGuide.Foundation">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\Map\bin\GisPlatform\OSGeo.MapGuide.Foundation.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OSGeo.MapGuide.Geometry">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\Map\bin\GisPlatform\OSGeo.MapGuide.Geometry.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OSGeo.MapGuide.PlatformBase">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\Map\bin\GisPlatform\OSGeo.MapGuide.PlatformBase.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -126,6 +146,7 @@
     </Content>
     <Content Include="PackageContents.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

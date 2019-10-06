@@ -19,6 +19,9 @@
 		    <Command Local="-python" Global="-python" />
 		    <Command Local="-replacesolid" Global="-replacesolid" />
         <Command Local="-ExportLandFeatureLinesToXml" Global="-ExportLandFeatureLinesToXml" />
+        <Command Local="-ExportCorridorFeatureLinesToXML" Global="-ExportCorridorFeatureLinesToXML" />
+        <Command Local="-ExportSubassemblyShapesToXML" Global="-ExportSubassemblyShapesToXML" />
+        <Command Local="-ExportSubassemblyLinksToXML" Global="-ExportSubassemblyLinksToXML" />
       </Commands>
     </ComponentEntry>
   </Components>
