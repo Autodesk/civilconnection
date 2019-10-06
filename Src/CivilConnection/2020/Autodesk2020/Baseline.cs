@@ -47,6 +47,7 @@ namespace CivilConnection
         private double[] _stations;
         private int _index;
         private IList<BaselineRegion> _baselineRegions;
+        Corridor _corridor;
         #endregion
 
         #region PUBLIC PROPERTIES
@@ -119,11 +120,12 @@ namespace CivilConnection
         /// <summary>
         /// Internal constructor
         /// </summary>
-        internal Baseline(AeccBaseline baseline, int index)
+        internal Baseline(AeccBaseline baseline, int index, Corridor corridor)
         {
             this._baseline = baseline;
             this._start = baseline.StartStation;
             this._end = baseline.EndStation;
+            this._corridor = corridor;
 
             IList<double> stations = new List<double>();
 
@@ -223,29 +225,36 @@ namespace CivilConnection
             IList<IList<Featureline>> blFeaturelines = new List<IList<Featureline>>();
             PolyCurve pc = null;
             double side = 0;
-            int ri = 0;
+            int ri = -1;
+            Point lastPoint = null;
+           
 
-            string xmlPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CorridorFeatureLines.xml");  // Revit 2020 changed the path to the temp at a session level
+            string xmlPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), string.Format("CorridorFeatureLines_{0}.xml", this._corridor.Name));  // Revit 2020 changed the path to the temp at a session level
 
             Utils.Log(xmlPath);
 
-            this._baseline.Alignment.Document.SendCommand(string.Format("-ExportCorridorFeatureLinesToXml\n{0}\n", this._baseline.Corridor.Handle));
-
-            DateTime start = DateTime.Now;
-
-            while (true)
+            if (!this._corridor._corridorFeaturelinesXMLExported)
             {
-                if (File.Exists(xmlPath))
+                this._baseline.Alignment.Document.SendCommand(string.Format("-ExportCorridorFeatureLinesToXml\n{0}\n", this._baseline.Corridor.Handle));
+
+                DateTime start = DateTime.Now;
+
+                while (true)
                 {
-                    if (File.GetLastWriteTime(xmlPath) > start)
+                    if (File.Exists(xmlPath))
                     {
-                        start = File.GetLastWriteTime(xmlPath);
-                    }
-                    else
-                    {
-                        break;
+                        if (File.GetLastWriteTime(xmlPath) > start)
+                        {
+                            start = File.GetLastWriteTime(xmlPath);
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
+
+                this._corridor._corridorFeaturelinesXMLExported = true;
             }
 
             Utils.Log("XML acquired.");
@@ -261,97 +270,235 @@ namespace CivilConnection
                     .Cast<XmlElement>()
                     .Where(x => Convert.ToInt32(x.Attributes["Index"].Value) == this.Index && x.ParentNode.ParentNode.Attributes["Name"].Value == this.CorridorName))
                 {
-                    foreach (XmlElement fe in be.GetElementsByTagName("FeatureLine").Cast<XmlElement>().Where(x => x.Attributes["Code"].Value == code))
+                    try
                     {
-                        IList<Point> points = new List<Point>();
-
-                        double isBreak = 0;
-
-                        foreach (XmlElement p in fe.GetElementsByTagName("Point").Cast<XmlElement>().OrderBy(e => Convert.ToDouble(e.Attributes["Station"].Value)))
+                        foreach (XmlElement fe in be.GetElementsByTagName("FeatureLine").Cast<XmlElement>().Where(x => x.Attributes["Code"].Value == code))
                         {
-                            double x = 0;
-                            double y = 0;
-                            double z = 0;
-                            double b = 0;
-
                             try
                             {
-                                x = Convert.ToDouble(p.Attributes["X"].Value);
-                            }
-                            catch (Exception ex)
-                            {
-                                Utils.Log(string.Format("ERROR: {0} X {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
-                            }
+                                IList<Point> points = new List<Point>();
 
-                            try
-                            {
-                                y = Convert.ToDouble(p.Attributes["Y"].Value);
-                            }
-                            catch (Exception ex)
-                            {
-                                Utils.Log(string.Format("ERROR: {0} Y {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
-                            }
+                                double isBreak = 0;
+                                int lastRi = -1;
 
-                            try
-                            {
-                                z = Convert.ToDouble(p.Attributes["Z"].Value);  // if Z is NaN because there is no profile associated in that station
-                            }
-                            catch (Exception ex)
-                            {
-                                Utils.Log(string.Format("ERROR: {0} Z {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
-                            }
-
-                            try
-                            {
-                                b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
-                            }
-                            catch (Exception ex)
-                            {
-                                Utils.Log(string.Format("ERROR: {0} IsBreak {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
-                            }
-
-                            isBreak += b;
-
-                            points.Add(Point.ByCoordinates(x, y, z));
-
-                            if (isBreak == 1)
-                            {
-                                Utils.Log("Break Point.");
-
-                                isBreak = 0;
-
-                                points = Point.PruneDuplicates(points);
-
-                                if (points.Count > 1)
+                                foreach (XmlElement p in fe.GetElementsByTagName("Point").Cast<XmlElement>().OrderBy(e => Convert.ToDouble(e.Attributes["Station"].Value)))
                                 {
-                                    Utils.Log(string.Format("Points: {0}", points.Count));
+                                    try
+                                    {
+                                        double x = 0;
+                                        double y = 0;
+                                        double z = 0;
+                                        double b = 0;
 
-                                    pc = PolyCurve.ByPoints(points);
-                                    side = Convert.ToDouble(fe.Attributes["Side"].Value);
-                                    ri = Convert.ToInt32(fe.Attributes["RegionIndex"].Value);
+                                        double station = Convert.ToDouble(p.Attributes["Station"].Value);
 
-                                    output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, ri));
+                                        try
+                                        {
+                                            x = Convert.ToDouble(p.Attributes["X"].Value);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} X {1}", station, ex.Message));
+                                        }
+
+                                        try
+                                        {
+                                            y = Convert.ToDouble(p.Attributes["Y"].Value);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} Y {1}", station, ex.Message));
+                                        }
+
+                                        try
+                                        {
+                                            z = Convert.ToDouble(p.Attributes["Z"].Value);  // if Z is NaN because there is no profile associated in that station
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} Z {1}", station, ex.Message));
+                                        }
+
+                                        try
+                                        {
+                                            b = Convert.ToDouble(p.Attributes["IsBreak"].Value);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} IsBreak {1}", station, ex.Message));
+                                        }
+
+                                        try
+                                        {
+                                            ri = Convert.ToInt32(p.Attributes["RegionIndex"].Value);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} RegionIndex {1}", station, ex.Message));
+                                        }
+
+                                        isBreak += b;
+
+                                        if (ri - lastRi > 1 || b == 1)
+                                        {
+                                            Utils.Log(string.Format("Region change isBreak: {0}", b));
+
+                                            if (b == 1)
+                                            {
+                                                lastRi = ri;
+
+                                                if (points.Count > 0)
+                                                {
+                                                    points.Add(Point.ByCoordinates(x, y, z));
+                                                }
+                                            }
+                                            else
+                                            {
+                                                lastRi = ri - 1;
+                                            } 
+
+                                            if (points.Count > 0)
+                                            {
+                                                points = Point.PruneDuplicates(points).ToList();
+                                            }
+
+                                            if (points.Count > 1)
+                                            {
+                                                Utils.Log(string.Format("Points: {0}", points.Count));
+
+                                                pc = PolyCurve.ByPoints(points);
+
+                                                // int reg = this.GetBaselineRegionIndexByStation(station);
+
+                                                try
+                                                {
+                                                    side = Convert.ToDouble(fe.Attributes["Side"].Value);
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML Side {0}", ex.Message));
+                                                    side = 1;
+                                                }
+
+                                                output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, lastRi));
+
+                                                lastPoint = points.Last();
+                                                points = new List<Point>();
+
+                                                if (b == 0)
+                                                {
+                                                    points.Add(lastPoint);
+                                                }
+
+                                                //if (isBreak == 1)
+                                                //{
+                                                //    isBreak = 0;
+                                                //}
+                                            }
+                                            //else
+                                            //{
+                                            //    if (isBreak == 1)
+                                            //    {
+                                            //        isBreak = 0;
+                                            //    }
+                                            //}
+                                        }
+
+                                        if (b != 1)
+                                        {
+                                            points.Add(Point.ByCoordinates(x, y, z));
+                                        }
+
+                                        // 20191005 -- START
+
+                                        //if (isBreak == 1)
+                                        //{
+                                        //    Utils.Log("Break Point.");
+
+                                        //    isBreak = 0;
+
+                                        //    points = Point.PruneDuplicates(points);
+
+                                        //    if (points.Count > 1)
+                                        //    {
+                                        //        Utils.Log(string.Format("Points: {0}", points.Count));
+
+                                        //        pc = PolyCurve.ByPoints(points);
+                                        //        //try
+                                        //        //{
+                                        //        //    ri = Convert.ToInt32(fe.Attributes["RegionIndex"].Value);
+                                        //        //}
+                                        //        //catch (Exception ex)
+                                        //        //{
+                                        //        //    Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML RegionIndex {0}", ex.Message));
+                                        //        //    ri = -1;
+                                        //        //}
+                                        //        try
+                                        //        {
+                                        //            side = Convert.ToDouble(fe.Attributes["Side"].Value);
+                                        //        }
+                                        //        catch (Exception ex)
+                                        //        {
+                                        //            Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML Side {0}", ex.Message));
+                                        //            side = 1;
+                                        //        }
+
+                                        //        output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, ri));
+                                        //    }
+
+                                        //    points = new List<Point>();
+                                        //}
+
+                                        // 20191005 -  END
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML point failed {0} {1}", Convert.ToDouble(p.Attributes["Station"].Value), ex.Message));
+                                    }
                                 }
 
-                                points = new List<Point>();
+                                if (isBreak == 0 && points.Count > 0)
+                                {
+                                    points = Point.PruneDuplicates(points).ToList();
+
+                                    if (points.Count > 1)
+                                    {
+                                        Utils.Log(string.Format("Points: {0}", points.Count));
+
+                                        pc = PolyCurve.ByPoints(points);
+                                        try
+                                        {
+                                            //ri = Convert.ToInt32(fe.Attributes["RegionIndex"].Value);
+                                            ri = this.GetBaselineRegionIndexByStation(Convert.ToDouble(this.GetArrayStationOffsetElevationByPoint(points[points.Count / 2])[0]));
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML RegionIndex {0}", ex.Message));
+                                            ri = -1;
+                                        }
+                                        try
+                                        {
+                                            side = Convert.ToDouble(fe.Attributes["Side"].Value);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML Side {0}", ex.Message));
+                                            side = 1;
+                                        }
+
+                                        output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, ri));
+                                    }
+                                }
                             }
-                        }
-
-                        if (isBreak == 0 && points.Count > 0)
-                        {
-                            points = Point.PruneDuplicates(points);
-
-                            if (points.Count > 1)
+                            catch (Exception ex)
                             {
-                                Utils.Log(string.Format("Points: {0}", points.Count));
-
-                                pc = PolyCurve.ByPoints(points);
-                                side = Convert.ToDouble(fe.Attributes["Side"].Value);
-                                ri = Convert.ToInt32(fe.Attributes["RegionIndex"].Value);
-
-                                output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, ri));
+                                Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML Featureline failed {0}", ex.Message));
                             }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                       Utils.Log(string.Format("ERROR: Baseline.GetFeaturelinesFromXML failed {0}", ex.Message));
                     }
                 }
 
@@ -414,22 +561,27 @@ namespace CivilConnection
             Utils.Log(string.Format("Baseline.GetBaselineRegionIndexByStation started...", ""));
 
             int output = 0;
+            int res = -1;
 
             foreach (AeccBaselineRegion region in this._baseline.BaselineRegions)
             {
                 if (region.StartStation <= station && region.EndStation >= station)
                 {
-                    return output;
+                    res = output;
+                    break;
                 }
-                else
-                {
-                    output += 1;
-                }
+               
+                output += 1;
+            }
+
+            if (res == -1)
+            {
+                Utils.Log(string.Format("ERROR: The station is not compatible with the Baseline", ""));
             }
 
             Utils.Log(string.Format("Baseline.GetBaselineRegionIndexByStation completed.", ""));
 
-            return output;
+            return res;
         }
 
         /// <summary>

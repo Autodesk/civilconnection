@@ -297,20 +297,23 @@ namespace CivilConnection
                 station = this.End;
             }
 
+            //bool findIntersection = true;
+
             if (station < this.Start || station > this.End)
             {
                 var message = "The Station value is not compatible with the Featureline.";
 
                 Utils.Log(string.Format("ERROR: {0}", message));
 
-                return null;
+                //findIntersection = false;
+                //return null;
             }
 
             cs = this._baseline.CoordinateSystemByStation(station);
 
             Utils.Log(string.Format("CoordinateSystem: {0}", cs));
 
-            if (cs != null)
+            if (cs != null )
             {
                 Plane plane = cs.ZXPlane;
 
@@ -354,12 +357,12 @@ namespace CivilConnection
                 // 20190415  -- START
                 if (p == null)
                 {
-                    if (station == this.Start)
+                    if (Math.Abs(station - this.Start) < 0.0001)
                     {
                         p = pc.StartPoint;
                         Utils.Log(string.Format("Point forced on Featureline start.", ""));
                     }
-                    if (station == this.End)
+                    if (Math.Abs(station - this.End) < 0.0001)
                     {
                         p = pc.EndPoint;
                         Utils.Log(string.Format("Point forced on Featureline end.", ""));
@@ -387,24 +390,40 @@ namespace CivilConnection
                 else
                 {
                     Utils.Log(string.Format("ERROR: Point is null.", ""));
+                    // use the Baseline
+                    output = CoordinateSystem.ByOriginVectors(cs.Origin, cs.XAxis, cs.YAxis, cs.ZAxis);
+
+                    Utils.Log(string.Format("Baseline is used: {0}", output));
                 }
 
                 Utils.Log(string.Format("Featureline.CoordinateSystemByStation completed.", ""));
 
-                //plane.Dispose();
-                //pc.Dispose();
-                //p.Dispose();
+                if (plane != null)
+                {
+                    plane.Dispose();
+                }
+                //if (pc != null)
+                //{
+                //    pc.Dispose();
+                //}
+                if (p != null)
+                {
+                    p.Dispose();
+                }
             }
             else
             {
-                var message = "The Station value is not compatible with the Featureline.";
+                var message = "The Station value is not compatible with the Featureline and its Baseline.";
 
                 Utils.Log(string.Format("ERROR: {0}", message));
 
                 throw new Exception(message);
             }
 
-            //cs.Dispose();
+            if (cs != null)
+            {
+                cs.Dispose();
+            }
 
             return output;
         }
@@ -693,12 +712,27 @@ namespace CivilConnection
             //end.Dispose();
             //dir.Dispose();
             //test.Dispose();
-            ortho.Dispose();
+            if (ortho != null)
+            {
+                ortho.Dispose(); 
+            }
             //l.Dispose();
-            cs.Dispose();
-            result.Dispose();
-            flatPt.Dispose();
-            flatPC.Dispose();
+            if (cs != null)
+            {
+                cs.Dispose(); 
+            }
+            if (result != null)
+            {
+                result.Dispose(); 
+            }
+            if (flatPt != null)
+            {
+                flatPt.Dispose(); 
+            }
+            if (flatPC != null)
+            {
+                flatPC.Dispose(); 
+            }
 
             #region OLD CODE
             //double[] soe = this._baseline.GetStationOffsetElevationByPoint(point);
@@ -707,6 +741,7 @@ namespace CivilConnection
             //double offset = soe[1] - this._baseline.GetStationOffsetElevationByPoint(PointAtStation(station))[1];
             //double elevation = point.Z - PointAtStation(station).Z;
             #endregion
+
             Utils.Log(string.Format("Featureline.GetStationOffsetElevationByPoint completed.", ""));
 
             return new Dictionary<string, object>

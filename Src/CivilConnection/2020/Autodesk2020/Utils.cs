@@ -66,7 +66,18 @@ namespace CivilConnection
         #region PUBLIC METHODS
 
 
-        
+        /// <summary>
+        /// Checks if two values are almost equal
+        /// </summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns></returns>
+        [IsVisibleInDynamoLibrary(false)]
+        public static bool AlmostEqual(double a, double b)
+        {
+            return Math.Abs(a - b) <= 0.00001;
+        }
+
 
         /// <summary>
         /// Feets to mm.
@@ -486,12 +497,15 @@ namespace CivilConnection
             return output;
         }
 
-        // TODO: investigate why it's not here
-        // Retrieving the COM class factory for component with
-        // CLSID {E93200C2-0078-4186-8DF9-3D5372B7DC57} failed due to the following error:
-        // 8007007e The specified module could not be found
-
-        // FIXIT: USE REFELECTION INSTEAD
+        // Atul Tegar  -- 20190917
+        private class TinCreationData : AeccTinCreationData
+        {
+            public string BaseLayer { get; set; }
+            public string Description { get; set; }
+            public string Layer { get; set; }
+            public string Name { get; set; }
+            public string Style { get; set; }
+        }
 
         /// <summary>
         /// Adds a TIN surface by points.
@@ -501,18 +515,34 @@ namespace CivilConnection
         /// <param name="name">The name.</param>
         /// <param name="layer">The name of the layer.</param>
         /// <returns></returns>
-        [IsVisibleInDynamoLibrary(false)]
+        [IsVisibleInDynamoLibrary(true)]
         public static string AddTINSurfaceByPoints(AeccRoadwayDocument doc, Point[] points, string name, string layer)
         {
             Utils.Log(string.Format("Utils.AddTINSurfaceByPoints started...", ""));
 
-            string handle = "eNull";
+            List<Point> pts = new List<Point>();
+
+            foreach (Point p in points)
+            {
+                if (double.IsInfinity(p.X) || double.IsInfinity(p.Y) || double.IsInfinity(p.Z) ||
+                    double.MaxValue < p.X || double.MaxValue < p.Y || double.MaxValue < p.Z ||
+                    double.MinValue > p.X || double.MinValue > p.Y || double.MinValue > p.Z ||
+                    double.NaN == p.X || double.NaN == p.Y || double.NaN == p.Z)
+                {
+                    Utils.Log(string.Format("Discarded {0} ", p));
+                    continue;
+                }
+
+                pts.Add(p);
+            }
+
+            string handle = "";
 
             try
             {
                 AddLayer(doc, layer);
 
-                AeccPointGroup group = doc.HandleToObject(AddPointGroupByPoint(doc, points, name)) as AeccPointGroup;
+                AeccPointGroup group = doc.HandleToObject(AddPointGroupByPoint(doc, pts.ToArray(), name)) as AeccPointGroup;
 
                 AeccSurfaces surfaces = doc.Surfaces;
 
@@ -520,28 +550,20 @@ namespace CivilConnection
 
                 if (surfacesType != null)
                 {
-                    //AeccTinCreationData data = new AeccTinCreationData()
-                    //{
-                    //    BaseLayer = layer,
-                    //    Description = "Created by Autodesk CivilConnection",
-                    //    Layer = layer,
-                    //    Name = name,
-                    //    Style =  doc.SurfaceStyles.Cast<AeccSurfaceStyle>().First().Name
-                    //};
+                    TinCreationData data = new TinCreationData()
+                    {
+                        BaseLayer = layer,
+                        Description = "Created by Autodesk CivilConnection",
+                        Layer = layer,
+                        Name = name,
+                        Style = doc.SurfaceStyles.Cast<AeccSurfaceStyle>().First().Name
+                    };
 
-                    dynamic surf = surfacesType.InvokeMember("AddTinSurface",
-                        BindingFlags.InvokeMethod,
-                        System.Type.DefaultBinder,
-                        surfaces,
-                        new object[] { new AeccTinCreationData() });
+                    AeccTinSurface surface = surfaces.AddTinSurface(data);
 
-                    handle = "eDebug - AeccTinCreationData";
+                    surface.PointGroups.Add(group);
 
-                    // AeccTinSurface surface = surfaces.AddTinSurface(data);
-
-                    // surf.PointGroups.Add(group);
-
-                    handle = surf.Handle;
+                    handle = surface.Handle;
                 }
             }
             catch (Exception ex)
@@ -1779,7 +1801,7 @@ namespace CivilConnection
         public static void Log(string message)
         {
             string path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CivilConnection_temp.log");
-            
+
             using (StreamWriter sw = new StreamWriter(path, true))
             {
                 sw.WriteLine(string.Format("[{0}] {1}", DateTime.Now, message));
@@ -2400,6 +2422,7 @@ namespace CivilConnection
         /// </summary>
         /// <param name="corridor">The corridor.</param>
         /// <returns></returns>
+        [IsVisibleInDynamoLibrary(false)]
         public static IList<IList<IList<Featureline>>> GetFeaturelines(Corridor corridor)  // 20190125
         {
             Utils.Log(string.Format("Utils.GetFeaturelines started...", ""));
@@ -2416,9 +2439,185 @@ namespace CivilConnection
                 }
             }
 
+            corridor._corridorFeaturelinesXMLExported = true;
+
             Utils.Log(string.Format("Utils.GetFeaturelines completed.", ""));
 
             return corridorFeaturelines;
+        }
+
+        /// <summary>
+        /// Gets the triangles from a CivilSurface
+        /// </summary>
+        /// <param name="surface">The CivilSurface.</param>
+        /// <returns></returns>
+        [IsVisibleInDynamoLibrary(false)]
+        public static IList<Surface> GetSurfaceTriangles(CivilSurface surface)  // 20190922
+        {
+            Utils.Log(string.Format("Utils.GetSurfaceTriangles ({0}) started...", surface.Name));
+
+            IList<Surface> triangles = new List<Surface>();
+
+            string xmlPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "Surface.xml");  // Revit 2020 changed the path to the temp at a session level
+
+            Utils.Log(xmlPath);
+
+            surface.InternalElement.Document.SendCommand(string.Format("-ExportSurfaceToXML\n{0}\n", surface.InternalElement.Handle));
+
+            DateTime start = DateTime.Now;
+
+            while (true)
+            {
+                if (File.Exists(xmlPath))
+                {
+                    if (File.GetLastWriteTime(xmlPath) > start)
+                    {
+                        start = File.GetLastWriteTime(xmlPath);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            Utils.Log("XML acquired.");
+
+            if (File.Exists(xmlPath))
+            {
+                IList<Featureline> output = new List<Featureline>();
+
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(xmlPath);
+
+                foreach (XmlElement se in xmlDoc.GetElementsByTagName("Surface")
+                    .Cast<XmlElement>()
+                    .Where(x => x.Attributes["Name"].Value == surface.Name))
+                {
+                    Dictionary<string, Point> points = new Dictionary<string, Point>();
+
+                    foreach (XmlElement ve in se.GetElementsByTagName("Vertex"))
+                    {
+                        double x = 0;
+                        double y = 0;
+                        double z = 0;
+                        string id = "";
+
+                        try
+                        {
+                            x = Convert.ToDouble(ve.Attributes["X"].Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.Log(string.Format("ERROR: X {0}", ex.Message));
+                        }
+
+                        try
+                        {
+                            y = Convert.ToDouble(ve.Attributes["Y"].Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.Log(string.Format("ERROR: Y {0}", ex.Message));
+                        }
+
+                        try
+                        {
+                            z = Convert.ToDouble(ve.Attributes["Z"].Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.Log(string.Format("ERROR: Z {0}", ex.Message));
+                        }
+
+                        try
+                        {
+                            id = ve.Attributes["id"].Value;
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.Log(string.Format("ERROR: Id {0}", ex.Message));
+                        }
+
+                        if (!string.IsNullOrEmpty(id) && !string.IsNullOrWhiteSpace(id))
+                        {
+                            points.Add(id, Point.ByCoordinates(x, y, z));
+                        }
+                    }
+
+                    Point a = null;
+                    Point b = null;
+                    Point c = null;
+
+                    // create surfaces
+                    foreach (XmlElement te in se.GetElementsByTagName("Triangle"))
+                    {
+                        a = points[te.Attributes["V0"].Value];
+                        b = points[te.Attributes["V1"].Value];
+                        c = points[te.Attributes["V2"].Value];
+
+                        triangles.Add(Surface.ByPerimeterPoints(new Point[] { a, b, c }));
+                    }
+
+                    a.Dispose();
+                    b.Dispose();
+                    c.Dispose();
+                }
+            }
+
+            Utils.Log(string.Format("Utils.GetSurfaceTriangles completed.", ""));
+
+            return triangles;
+        }
+
+        /// <summary>
+        /// Recursive function to join surfaces into a PolySurface
+        /// </summary>
+        /// <param name="surfaces">The surface list to process</param>
+        /// <param name="limit">The amount of surfaces to join together</param>
+        /// <returns></returns>
+        [IsVisibleInDynamoLibrary(false)]
+        public static IList<Surface> JoinSurfaces(IList<Surface> surfaces, int limit=100)  // 20190922
+        {
+            Utils.Log(string.Format("Utils.JoinSurfaces started on {0} surfaces", surfaces.Count));
+
+            if (surfaces.Count == 1)
+            {
+                Utils.Log(string.Format("Utils.JoinSurfaces completed.", ""));
+
+                return surfaces;
+            }
+            else
+            {
+                IList<Surface> result = new List<Surface>();
+
+                for (int i = 0; i < surfaces.Count; i = i + limit)
+                {
+                    IList<Surface> temp = new List<Surface>();
+
+                    for (int j = i; j < i + limit; ++j)
+                    {
+                        if (j < surfaces.Count)
+                        {
+                            temp.Add(surfaces[j]);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    PolySurface ps = PolySurface.ByJoinedSurfaces(temp);
+
+                    result.Add(ps);
+                }
+
+                result = JoinSurfaces(result);
+
+                Utils.Log(string.Format("Utils.JoinSurfaces completed.", ""));
+
+                return result; 
+            }
         }
 
         // TODO : Create a set of nodes to process directly LandXML files to extract:

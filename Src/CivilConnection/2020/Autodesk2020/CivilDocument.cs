@@ -60,6 +60,10 @@ namespace CivilConnection
         /// </summary>
         private AeccAlignmentsSiteless _alignments;
         /// <summary>
+        /// The Surfaces
+        /// </summary>
+        private AeccSurfaces _surfaces;
+        /// <summary>
         /// Gets the internal element.
         /// </summary>
         /// <value>
@@ -78,6 +82,7 @@ namespace CivilConnection
             this._document = _doc;
             _corridors = _doc.Corridors;
             _alignments = _doc.AlignmentsSiteless;
+            _surfaces = _doc.Surfaces;
         }
         #endregion
 
@@ -238,6 +243,40 @@ namespace CivilConnection
         public Alignment GetAlignmentByName(string name)
         {
             return this.GetAlignments().First(x => x.Name == name);
+        }
+
+        /// <summary>
+        /// Gets all surfaces in the document
+        /// </summary>
+        /// <returns>
+        /// List of surfaces
+        /// </returns>
+        public IList<CivilSurface> GetSurfaces()
+        {
+            Utils.Log(string.Format("CivilDocument.GetSurfaces started...", ""));
+
+            IList<CivilSurface> output = new List<CivilSurface>();
+
+            foreach (AeccSurface s in this._surfaces)
+            {
+                output.Add(new CivilSurface(s));
+            }
+
+            Utils.Log(string.Format("CivilDocument.GetSurfaces completed.", ""));
+
+            return output;
+        }
+
+        /// <summary>
+        /// Gets surface by name.
+        /// </summary>
+        /// <param name="name">The name of the surface</param>
+        /// <returns>
+        /// Civil Surface
+        /// </returns>
+        public CivilSurface GetSurfaceByName(string name)
+        {
+            return this.GetSurfaces().First(x => x.Name == name);
         }
 
         #region AUTOCAD METHODS
@@ -503,9 +542,7 @@ namespace CivilConnection
             return new Dictionary<string, object>() { { "PointGroupNames", dict.Keys }, { "Points", dict.Values } };
         }
 
-        // TODO: the COM API returns an error when calling the class to create the AeccTinSurfaceData
-        // USE REFELECTION INSTEAD
-        // CLSID
+
         /// <summary>
         /// Adds the tin surface by points.
         /// </summary>
@@ -513,7 +550,7 @@ namespace CivilConnection
         /// <param name="name">The name.</param>
         /// <param name="layer">The layer.</param>
         /// <returns></returns>
-        [IsVisibleInDynamoLibrary(false)]
+        //[IsVisibleInDynamoLibrary(false)]
         public string AddTINSurfaceByPoints(Point[] points, string name, string layer)
         {
             return Utils.AddTINSurfaceByPoints(this._document, points, name, layer);

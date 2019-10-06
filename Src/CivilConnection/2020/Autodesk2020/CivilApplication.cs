@@ -170,6 +170,9 @@ namespace CivilConnection
             SessionVariables.LandXMLPath = System.IO.Path.GetTempPath();
             SessionVariables.IsLandXMLExported = false;
             SessionVariables.CivilApplication = this;
+            SessionVariables.ParametersCreated = false;
+            SessionVariables.DocumentTotalTransform = null;
+            RevitUtils.DocumentTotalTransform();
         }
 
         /// <summary>

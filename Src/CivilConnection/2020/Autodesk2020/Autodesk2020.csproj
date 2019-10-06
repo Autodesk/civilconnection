@@ -146,6 +146,7 @@
     <Compile Include="CableTray.cs" />
     <Compile Include="CivilApplication.cs" />
     <Compile Include="CivilDocument.cs" />
+    <Compile Include="CivilSurface.cs" />
     <Compile Include="Conduit.cs" />
     <Compile Include="Connector.cs" />
     <Compile Include="Corridor.cs" />
@@ -208,9 +209,9 @@
     </ItemGroup>
     <PropertyGroup>
       <!--Debug -->
-      <DeployFolder Condition="'$(Configuration)' == 'Debug'">$(AppData)\Dynamo\Dynamo Revit\2.1\packages\CivilConnection2020\</DeployFolder>
+      <DeployFolder Condition="'$(Configuration)' == 'Debug'">$(AppData)\Dynamo\Dynamo Revit\2.2\packages\CivilConnection2020\</DeployFolder>
       <!--Release -->
-      <DeployFolder Condition="'$(Configuration)' == 'Release'">$(AppData)\Dynamo\Dynamo Revit\2.1\packages\CivilConnection2020\</DeployFolder>
+      <DeployFolder Condition="'$(Configuration)' == 'Release'">$(AppData)\Dynamo\Dynamo Revit\2.2\packages\CivilConnection2020\</DeployFolder>
     </PropertyGroup>
     <Copy SourceFiles="@(SourcePackage)" DestinationFolder="$(DeployFolder)\%(RecursiveDir)" />
     <Message Importance="High" Text="Package created." />

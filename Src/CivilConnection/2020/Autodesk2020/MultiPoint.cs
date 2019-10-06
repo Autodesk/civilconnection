@@ -77,7 +77,10 @@ namespace CivilConnection
 
             try
             {
-                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+                if (!SessionVariables.ParametersCreated)
+                {
+                    UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+                }
 
                 PolyCurve outline = PolyCurve.ByPoints(this.ShapePoints.Points.Select(p => p.RevitPoint).ToList(), true);
 
@@ -144,7 +147,10 @@ namespace CivilConnection
 
             try
             {
-                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+                if (!SessionVariables.ParametersCreated)
+                {
+                    UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+                }
 
                 PolyCurve outline = PolyCurve.ByPoints(this.ShapePoints.Points.Select(p => p.RevitPoint).ToList(), true);
 
@@ -196,7 +202,10 @@ namespace CivilConnection
 
             try
             {
-                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+                if (!SessionVariables.ParametersCreated)
+                {
+                    UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+                }
 
                 output = AdaptiveComponent.ByPoints(new Point[][] { this.ShapePoints.Points.Select(p => p.RevitPoint).ToArray() }, familyType)[0];
                 output.SetParameterByName(ADSK_Parameters.Instance.MultiPoint.Name, this.SerializeJSON());

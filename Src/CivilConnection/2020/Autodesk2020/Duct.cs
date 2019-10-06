@@ -204,7 +204,10 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = ductType.InternalElement as Autodesk.Revit.DB.Mechanical.DuctType;
             var oSystemType = mechanicalSystemType.InternalElement as Autodesk.Revit.DB.Mechanical.MechanicalSystemType;
             start = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
@@ -252,7 +255,10 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = ductType.InternalElement as Autodesk.Revit.DB.Mechanical.DuctType;
             var oSystemType = mechanicalSystemType.InternalElement as Autodesk.Revit.DB.Mechanical.MechanicalSystemType;
             var start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
@@ -283,7 +289,10 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = ductType.InternalElement as Autodesk.Revit.DB.Mechanical.DuctType;
             var oSystemType = mechanicalSystemType.InternalElement as Autodesk.Revit.DB.Mechanical.MechanicalSystemType;
             var start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
@@ -351,7 +360,10 @@ namespace CivilConnection.MEP
             var totalTransformInverse = totalTransform.Inverse();
 
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = ductType.InternalElement as Autodesk.Revit.DB.Mechanical.DuctType;
             var oSystemType = mechanicalSystemType.InternalElement as Autodesk.Revit.DB.Mechanical.MechanicalSystemType;
             var l = level.InternalElement as Autodesk.Revit.DB.Level;

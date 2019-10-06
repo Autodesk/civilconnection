@@ -176,7 +176,10 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("CableTray.CableTrayByCurve started...", ""));
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
             var oType = cableTrayType.InternalElement as Autodesk.Revit.DB.Electrical.CableTrayType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
@@ -271,7 +274,10 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("CableTray.ByPoints started...", ""));
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
             var oType = cableTrayType.InternalElement as Autodesk.Revit.DB.Electrical.CableTrayType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
@@ -317,7 +323,10 @@ namespace CivilConnection.MEP
         /// <returns></returns>
         public static CableTray ByCurve(Revit.Elements.Element cableTrayType, Autodesk.DesignScript.Geometry.Curve curve)
         {
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             return CableTrayByCurve(cableTrayType, curve);
         }
 
@@ -451,7 +460,10 @@ namespace CivilConnection.MEP
                 var e = points[i + 1];
                 var curve = Autodesk.DesignScript.Geometry.Line.ByStartPointEndPoint(s, e);
 
-                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+                if (!SessionVariables.ParametersCreated)
+                {
+                    UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+                }
 
                 var sp = s.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var ep = e.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
