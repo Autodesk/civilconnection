@@ -663,22 +663,22 @@ namespace CivilConnection
 
             CoordinateSystem cs = null;
 
-            //if (SessionVariables.DocumentTotalTransform == null)
-            //{
-            var doc = DocumentManager.Instance.CurrentDBDocument;
+            if (SessionVariables.DocumentTotalTransform != null)
+            {
+                cs = SessionVariables.DocumentTotalTransform;
+            }
+            else
+            {
+                var doc = DocumentManager.Instance.CurrentDBDocument;
 
-            var location = doc.ActiveProjectLocation;
+                var location = doc.ActiveProjectLocation;
 
-            var transform = location.GetTotalTransform();
+                var transform = location.GetTotalTransform();
 
-            cs = CoordinateSystem.ByOriginVectors(transform.Origin.ToPoint(), transform.BasisX.ToVector(), transform.BasisY.ToVector(), transform.BasisZ.ToVector());
+                cs = CoordinateSystem.ByOriginVectors(transform.Origin.ToPoint(), transform.BasisX.ToVector(), transform.BasisY.ToVector(), transform.BasisZ.ToVector());
 
-            //    SessionVariables.DocumentTotalTransform = cs;
-            //}
-            //else 
-            //{
-            //    cs = SessionVariables.DocumentTotalTransform;
-            //}
+                SessionVariables.DocumentTotalTransform = cs;
+            }
 
             Utils.Log(string.Format("RevitUtils.DocumentTotalTransform completed.", ""));
 
@@ -784,7 +784,10 @@ namespace CivilConnection
 
                 Autodesk.Revit.DB.Document doc = DocumentManager.Instance.CurrentDBDocument;
 
-                UtilsObjectsLocation.CheckParameters(doc);
+                if (!SessionVariables.ParametersCreated)
+                {
+                    UtilsObjectsLocation.CheckParameters(doc); 
+                }
 
                 Point lp = null;
                 Point lpe = null;
@@ -994,9 +997,6 @@ namespace CivilConnection
                     double station = (double)soe["Station"];
                     double offset = (double)soe["Offset"];
                     double elevation = (double)soe["Elevation"];
-                    cs = featureline.CoordinateSystemByStation(station);
-                    localX = cs.XAxis;
-                    localZ = cs.ZAxis;
 
                     element.SetParameterByName(ADSK_Parameters.Instance.Corridor.Name, featureline.Baseline.CorridorName);
                     Utils.Log(string.Format("ADSK_Corridor: {0}", featureline.Baseline.CorridorName));
@@ -1086,8 +1086,21 @@ namespace CivilConnection
                     else
                     {
                         FamilyInstance fi = element as FamilyInstance;
-                        element.SetParameterByName(ADSK_Parameters.Instance.AngleZ.Name, Math.Round(-localX.AngleAboutAxis(fi.FacingOrientation, localZ), 3));
-                        Utils.Log(string.Format("ADSK_AngleZ: {0}", Math.Round(-localX.AngleAboutAxis(fi.FacingOrientation, localZ), 3)));
+
+                        cs = featureline.CoordinateSystemByStation(station);
+
+                        if (cs != null)
+                        {
+                            localX = cs.XAxis;
+                            localZ = cs.ZAxis;
+
+                            element.SetParameterByName(ADSK_Parameters.Instance.AngleZ.Name, Math.Round(-localX.AngleAboutAxis(fi.FacingOrientation, localZ), 3));
+                            Utils.Log(string.Format("ADSK_AngleZ: {0}", Math.Round(-localX.AngleAboutAxis(fi.FacingOrientation, localZ), 3)));
+                        }
+                        else
+                        {
+                            Utils.Log(string.Format("ERROR: Cannot calculate the Angle Z value", ""));
+                        }
                     }
                 }
                 else

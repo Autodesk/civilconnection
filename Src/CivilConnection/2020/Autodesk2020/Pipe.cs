@@ -209,7 +209,10 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("Pipe.ByPoints started...", ""));
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = pipeType.InternalElement as Autodesk.Revit.DB.Plumbing.PipeType;
             var oSystemType = pipingSystemType.InternalElement as Autodesk.Revit.DB.Plumbing.PipingSystemType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
@@ -256,7 +259,10 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("Pipe.ByCurve started...", ""));
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = pipeType.InternalElement as Autodesk.Revit.DB.Plumbing.PipeType;
             var oSystemType = pipingSystemType.InternalElement as Autodesk.Revit.DB.Plumbing.PipingSystemType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
@@ -286,7 +292,10 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("Pipe.ByCurveFeatureline started...", ""));
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = pipeType.InternalElement as Autodesk.Revit.DB.Plumbing.PipeType;
             var oSystemType = pipingSystemType.InternalElement as Autodesk.Revit.DB.Plumbing.PipingSystemType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
@@ -354,7 +363,10 @@ namespace CivilConnection.MEP
             var totalTransform = RevitUtils.DocumentTotalTransform();
             var totalTransformInverse = totalTransform.Inverse();
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = pipeType.InternalElement as Autodesk.Revit.DB.Plumbing.PipeType;
             var oSystemType = pipingSystemType.InternalElement as Autodesk.Revit.DB.Plumbing.PipingSystemType;
             var l = level.InternalElement as Autodesk.Revit.DB.Level;

@@ -59,6 +59,7 @@ namespace CivilConnection
         /// Returns a Dynamo CoordinateSystem that represents the Revti Document Total Transform for the session.
         /// </summary>
         public static Autodesk.DesignScript.Geometry.CoordinateSystem DocumentTotalTransform { get; set; }
+
         #endregion
 
         #region CONSTRUCTOR

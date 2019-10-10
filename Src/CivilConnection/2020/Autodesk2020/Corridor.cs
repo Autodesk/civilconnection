@@ -65,9 +65,13 @@ namespace CivilConnection
         /// Corridor Applied Subassembly Links
         /// </summary>
         private IList<IList<IList<AppliedSubassemblyLink>>> _links = new List<IList<IList<AppliedSubassemblyLink>>>();
+        /// <summary>
+        /// Indicates if the corridor feature lines have been already extracted
+        /// </summary>
+        internal bool _corridorFeaturelinesXMLExported;
         #endregion
 
-        #region PUBLIC PRoPERTIES
+        #region PUBLIC PROPERTIES
         /// <summary>
         /// Gets the baselines.
         /// </summary>
@@ -139,11 +143,12 @@ namespace CivilConnection
             int index = 0;
             foreach (AeccBaseline b in corridor.Baselines)
             {
-                bls.Add(new Baseline(b, index));
+                bls.Add(new Baseline(b, index, this));
                 ++index;
             }
 
             this._baselines = bls;
+            this._corridorFeaturelinesXMLExported = false;
         }
 
         /// <summary>

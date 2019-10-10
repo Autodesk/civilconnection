@@ -2331,7 +2331,10 @@ namespace CivilConnection
 
             //TODO: Check Shared Parameters first
 
-            CheckParameters(doc);
+            if (!SessionVariables.ParametersCreated)
+            {
+                CheckParameters(doc); 
+            }
 
             Transform tr = doc.ActiveProjectLocation.GetTotalTransform().Inverse;
 
@@ -2596,7 +2599,10 @@ namespace CivilConnection
 
             var totalTransformInverse = totalTransform.Inverse();
 
-            CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             Autodesk.DesignScript.Geometry.Point locationPBP = familyInstance.Location;
             Autodesk.DesignScript.Geometry.Point locationWCS = locationPBP.Transform(totalTransformInverse) as Autodesk.DesignScript.Geometry.Point;
 
@@ -2665,7 +2671,10 @@ namespace CivilConnection
 
 
             AbstractMEPCurve mep = linearMEPCurve as AbstractMEPCurve;
-            CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var lc = mep.InternalMEPCurve.Location as LocationCurve;
             Autodesk.DesignScript.Geometry.Point startPBP = lc.Curve.ToProtoType().StartPoint;
             Autodesk.DesignScript.Geometry.Point endPBP = lc.Curve.ToProtoType().EndPoint;
@@ -4311,7 +4320,10 @@ namespace CivilConnection
 
             RevitServices.Transactions.TransactionManager.Instance.TransactionTaskDone();
 
-            CheckParameters(doc);
+            if (!SessionVariables.ParametersCreated)
+            {
+                CheckParameters(doc); 
+            }
 
             CoordinateSystem cs = CoordinateSystem.Identity();
             Autodesk.DesignScript.Geometry.Point newLocPoint = Autodesk.DesignScript.Geometry.Point.Origin();
@@ -4396,7 +4408,10 @@ namespace CivilConnection
 
             RevitServices.Transactions.TransactionManager.Instance.TransactionTaskDone();
 
-            CheckParameters(doc);
+            if (!SessionVariables.ParametersCreated)
+            {
+                CheckParameters(doc); 
+            }
 
             CoordinateSystem cs = CoordinateSystem.Identity();
             Autodesk.DesignScript.Geometry.Point newLocPoint = Autodesk.DesignScript.Geometry.Point.Origin();
@@ -4857,7 +4872,10 @@ namespace CivilConnection
 
             var doc = RevitServices.Persistence.DocumentManager.Instance.CurrentDBDocument;
 
-            CheckParameters(doc);
+            if (!SessionVariables.ParametersCreated)
+            {
+                CheckParameters(doc); 
+            }
 
             var bb = BoundingBox.ByGeometry(new List<Geometry>() { surface });
 

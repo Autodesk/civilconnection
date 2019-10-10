@@ -336,7 +336,10 @@ namespace CivilConnection.MEP
 
                 var curve = Autodesk.DesignScript.Geometry.Line.ByStartPointEndPoint(s, e);
 
-                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+                if (!SessionVariables.ParametersCreated)
+                {
+                    UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+                }
 
                 var sp = s.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var ep = e.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
@@ -404,7 +407,10 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = conduitType.InternalElement as Autodesk.Revit.DB.Electrical.ConduitType;
             start = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var s = start.ToXyz();
@@ -430,7 +436,10 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = conduitType.InternalElement as Autodesk.Revit.DB.Electrical.ConduitType;
             Autodesk.DesignScript.Geometry.Point start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var s = start.ToXyz();
@@ -457,7 +466,10 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+            }
             var oType = conduitType.InternalElement as Autodesk.Revit.DB.Electrical.ConduitType;
             Autodesk.DesignScript.Geometry.Point start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var s = start.ToXyz();

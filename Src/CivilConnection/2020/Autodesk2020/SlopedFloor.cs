@@ -120,7 +120,10 @@ namespace CivilConnection
 
             TransactionManager.Instance.EnsureInTransaction(doc);
 
-            UtilsObjectsLocation.CheckParameters(doc);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(doc); 
+            }
 
             Autodesk.Revit.DB.Floor floor = null;
 
