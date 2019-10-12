@@ -213,6 +213,20 @@ namespace CivilConnection
             return new CivilApplication();
         }
 
+
+        /// <summary>
+        /// Writes a message to the log file
+        /// </summary>
+        /// <param name="data">The data that is passed through</param>
+        /// <param name="message">An optional message to write to the log.</param>
+        /// <returns></returns>
+        public object WriteToLog(object data, string message = "")
+        {
+            Utils.Log(string.Format("{0}{1}", message.Length > 0 ? message + " " : "", data));
+
+            return data;
+        }
+
         /// <summary>
         /// Public textual representation of the Dynamo node preview.
         /// </summary>
