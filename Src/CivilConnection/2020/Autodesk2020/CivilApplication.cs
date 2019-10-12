@@ -220,7 +220,7 @@ namespace CivilConnection
         /// <param name="data">The data that is passed through</param>
         /// <param name="message">An optional message to write to the log.</param>
         /// <returns></returns>
-        public object WriteToLog(object data, string message = "")
+        public static object WriteToLog(object data, string message = "")
         {
             Utils.Log(string.Format("{0}{1}", message.Length > 0 ? message + " " : "", data));
 
