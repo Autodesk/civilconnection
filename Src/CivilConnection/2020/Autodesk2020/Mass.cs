@@ -2307,7 +2307,7 @@ namespace CivilConnection
 
                     f.Commit();
 
-                    cs.Dispose();
+                    //cs.Dispose();
                 }
 
                 SaveFamily(famDoc, famPath);
@@ -2726,7 +2726,7 @@ namespace CivilConnection
 
                     f.Commit();
 
-                    cs.Dispose();
+                    //cs.Dispose();
                 }
 
                 SaveFamily(famDoc, famPath);
