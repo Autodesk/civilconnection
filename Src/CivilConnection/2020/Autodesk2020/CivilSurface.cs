@@ -315,6 +315,51 @@ namespace CivilConnection
         }
 
         /// <summary>
+        /// Get intersection point between the line with start point and direction on the surface 
+        /// </summary>
+        /// <param name="point">The point to process</param>
+        /// <param name="vector">The direction vector</param>
+        /// <returns>
+        /// The intersection point
+        /// </returns>
+        public Point GetIntersectionPoint(Point point, Vector vector) // author: Atul Tegar
+        {
+            Point point2 = null;
+            double p1X = point.X;
+            double p1Y = point.Y;
+            double p1Z = point.Z;
+
+            double[] p1 = { p1X, p1Y, p1Z }; 
+
+            double vX = vector.X;
+            double vY = vector.Y;
+            double vZ = vector.Z;
+
+            double[] direction = { vX, vY, vZ };
+                      
+            try
+            {
+                var intPoint = this._surface.IntersectPointWithSurface(p1, direction);
+
+                double p2X = intPoint[0];
+                double p2Y = intPoint[1];
+                double p2Z = intPoint[2];
+                point2 = Point.ByCoordinates(p2X,p2Y,p2Z);
+
+            }
+
+            catch (Exception ex)
+            {
+                Utils.Log(string.Format("Error: CivilSurface.GetIntersectionPoint: No intersection with vector and surface found, {0}", ex.Message));
+                point2 = null;
+            }
+
+            Utils.Log(string.Format("CivilSurface.GetIntersectionPoint completed.", ""));
+
+            return point2;
+        }
+
+        /// <summary>
         /// Gets all the triangle surfaces in a CivilSurface
         /// </summary>
         /// <returns></returns>
