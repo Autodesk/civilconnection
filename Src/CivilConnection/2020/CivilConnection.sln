@@ -7,14 +7,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Autodesk2020", "Autodesk202
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		2020|Any CPU = 2020|Any CPU
+		2021|Any CPU = 2021|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.2020|Any CPU.ActiveCfg = 2020|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.2020|Any CPU.Build.0 = 2020|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.2021|Any CPU.ActiveCfg = 2021|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.2021|Any CPU.Build.0 = 2021|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Debug|Any CPU.ActiveCfg = 2021|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Debug|Any CPU.Build.0 = 2021|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Release|Any CPU.ActiveCfg = 2021|Any CPU
+		{28105AE1-A1CC-43AC-9EEA-28802E06A547}.Release|Any CPU.Build.0 = 2021|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
