@@ -244,8 +244,6 @@ namespace CivilConnection
                 floor.Floortype = floorType;
                 floor.Structural = structural;
 
-                //DocumentManager.Regenerate();
-
                 plane.Dispose();
                 flatLine.Dispose();
                 flat.Dispose();

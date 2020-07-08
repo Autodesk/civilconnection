@@ -13,11 +13,14 @@
 // permissions and limitations under the License.
 using Autodesk.DesignScript.Runtime;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Mechanical;
 
 using Revit.GeometryConversion;
 
 using RevitServices.Persistence;
 using RevitServices.Transactions;
+using Revit.Elements;
+using System.Collections.Generic;
 
 
 namespace CivilConnection.MEP
@@ -159,13 +162,20 @@ namespace CivilConnection.MEP
             var oSystemType = systemType.InternalElement as Autodesk.Revit.DB.Plumbing.PipingSystemType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            start = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var s = start.ToXyz();
-            end = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var e = end.ToXyz();
+            var nstart = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var s = nstart.ToXyz();
+            var nend = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var e = nend.ToXyz();
             var l = level.InternalElement as Autodesk.Revit.DB.Level;
 
-            totalTransform.Dispose();
+            if (nstart != null)
+            {
+                nstart.Dispose();
+            }
+            if (nend != null)
+            {
+                nend.Dispose();
+            }
 
             Utils.Log(string.Format("PipePlaceHolder.ByPoints completed.", ""));
 

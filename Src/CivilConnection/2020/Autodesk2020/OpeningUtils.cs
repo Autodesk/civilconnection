@@ -11,12 +11,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.DesignScript.Geometry;
-using Autodesk.Revit.DB;
-using Revit.GeometryConversion;
-using RevitServices.Persistence;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using System.IO;
+
+using Revit.Application;
+using Revit.Elements.Views;
+using Revit.Elements;
+using Revit.Transaction;
+using RevitServices.Transactions;
+using RevitServices.Persistence;
+
+using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
+using Revit.GeometryConversion;
+
+using Autodesk.AECC.Interop.Roadway;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Land;
+using Autodesk.AECC.Interop.UiLand;
+
+using Autodesk.AutoCAD.Interop.Common;
+
+using Autodesk.Revit.DB;
 
 namespace CivilConnection
 {
@@ -255,12 +276,10 @@ namespace CivilConnection
                 var min = Autodesk.DesignScript.Geometry.Point.ByCoordinates(relative.Min(p => p.X),
                     relative.Min(p => p.Y),
                     relative.Min(p => p.Z));
-                //.Transform(cs) as Autodesk.DesignScript.Geometry.Point;
 
                 var max = Autodesk.DesignScript.Geometry.Point.ByCoordinates(relative.Max(p => p.X),
                    relative.Max(p => p.Y),
                    relative.Max(p => p.Z));
-                //.Transform(cs) as Autodesk.DesignScript.Geometry.Point;
 
                 double width = max.X - min.X;
                 double height = max.Y - min.Y;

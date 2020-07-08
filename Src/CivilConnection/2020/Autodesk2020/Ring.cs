@@ -465,7 +465,6 @@ namespace CivilConnection.Tunnel
             var start = this.StartCS;
             var a = this.Angle + angle;
             var ring = this.Transform(start.Rotate(front.ZXPlane, angle));
-            //ring.Angle = Math.Abs(a) > 360 ? (Math.Abs(a) - Math.Floor(Math.Abs(a) / 360) * 360) * Math.Sign(a) : a;
 
             Utils.Log(string.Format("Ring.RotateOnFace completed.", ""));
 
@@ -481,8 +480,6 @@ namespace CivilConnection.Tunnel
         {
             CoordinateSystem cs = this.BackCS.Rotate(this.BackCS.YZPlane, this.FaceAngle).Rotate(this.BackCS.ZXPlane, angle);
             Ring output = this.Transform(cs);
-            //var a = this.Angle + angle;
-            // output.Angle = Math.Abs(a) > 360 ? (Math.Abs(a) - Math.Floor(Math.Abs(a) / 360) * 360) * Math.Sign(a) : a;
             cs.Dispose();
             return output;
         }

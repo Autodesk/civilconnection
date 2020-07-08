@@ -11,11 +11,25 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
+using System.Runtime;
+using System.Runtime.InteropServices;
 
+using Autodesk.AutoCAD.Interop;
+using Autodesk.AutoCAD.Interop.Common;
+using Autodesk.AECC.Interop.UiRoadway;
+using Autodesk.AECC.Interop.Roadway;
 using Autodesk.AECC.Interop.Land;
+using Autodesk.AECC.Interop.UiLand;
+using System.Reflection;
 
 using Autodesk.DesignScript.Runtime;
+using Autodesk.DesignScript.Geometry;
 
 namespace CivilConnection
 {
@@ -80,7 +94,6 @@ namespace CivilConnection
         internal ProfilePVI(AeccProfilePVI pvi)
         {
             this._pvi = pvi;
-            //this._entities = profile.Entities;
         }
 
         #endregion

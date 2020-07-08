@@ -176,10 +176,6 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("CableTray.CableTrayByCurve started...", ""));
 
-            if (!SessionVariables.ParametersCreated)
-            {
-                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
-            }
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
             var oType = cableTrayType.InternalElement as Autodesk.Revit.DB.Electrical.CableTrayType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
@@ -188,6 +184,9 @@ namespace CivilConnection.MEP
             Autodesk.DesignScript.Geometry.Point end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var e = end.ToXyz();
             TransactionManager.Instance.TransactionTaskDone();
+
+            start.Dispose();
+            end.Dispose();
 
             Utils.Log(string.Format("CableTray.CableTrayByCurve completed.", ""));
 
@@ -198,12 +197,17 @@ namespace CivilConnection.MEP
         /// Creates a set of CableTrays following a PolyCurve specifying a maximum length.
         /// </summary>
         /// <param name="CableTrayType">The CableTray type.</param>
-        /// <param name="polyCurve">The PolyCurve to follow.</param>
+        /// <param name="polyCurve">The PolyCurve to follow in WCS.</param>
         /// <param name="maxLength">The maximum length of the CableTrays following the PolyCurve.</param>
         /// <returns></returns>
-        private CableTray[] ByPolyCurve(Revit.Elements.Element CableTrayType, PolyCurve polyCurve, double maxLength)
+        private CableTray[] ByPolyCurve_(Revit.Elements.Element CableTrayType, PolyCurve polyCurve, double maxLength)
         {
             Utils.Log(string.Format("CableTray.ByPolyCurve started...", ""));
+
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            }
 
             var oType = CableTrayType.InternalElement as Autodesk.Revit.DB.Electrical.CableTrayType;
 
@@ -226,7 +230,7 @@ namespace CivilConnection.MEP
 
             points.Add(polyCurve.EndPoint);
 
-            points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);
+            points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);  // TODO this is slow
 
             IList<ElementId> ids = new List<ElementId>();
 
@@ -234,11 +238,14 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+
             for (int i = 0; i < points.Count - 1; ++i)
             {
-                Autodesk.DesignScript.Geometry.Point start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var s = start.ToXyz();
-                Autodesk.DesignScript.Geometry.Point end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var e = end.ToXyz();
 
                 Autodesk.Revit.DB.Electrical.CableTray p = Autodesk.Revit.DB.Electrical.CableTray.Create(DocumentManager.Instance.CurrentDBDocument, oType.Id, s, e, ElementId.InvalidElementId);
@@ -253,6 +260,19 @@ namespace CivilConnection.MEP
             }
 
             TransactionManager.Instance.TransactionTaskDone();
+            start.Dispose();
+            end.Dispose();
+
+            foreach (var pt in points)
+            {
+                if (pt != null)
+                {
+                    pt.Dispose();
+                }
+            }
+
+            points.Clear();
+
 
             Utils.Log(string.Format("CableTray.ByPolyCurve completed.", ""));
 
@@ -267,8 +287,8 @@ namespace CivilConnection.MEP
         /// Creates a CableTray by two Points.
         /// </summary>
         /// <param name="cableTrayType">Type of the cable tray.</param>
-        /// <param name="start">The start Point.</param>
-        /// <param name="end">The end Point.</param>
+        /// <param name="start">The start Point in WCS.</param>
+        /// <param name="end">The end Point in WCS.</param>
         /// <returns></returns>
         public static CableTray ByPoints(Revit.Elements.Element cableTrayType, Autodesk.DesignScript.Geometry.Point start, Autodesk.DesignScript.Geometry.Point end)
         {
@@ -281,11 +301,20 @@ namespace CivilConnection.MEP
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
             var oType = cableTrayType.InternalElement as Autodesk.Revit.DB.Electrical.CableTrayType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
-            start = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var s = start.ToXyz();
-            end = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var e = end.ToXyz();
+            var nstart = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var s = nstart.ToXyz();
+            var nend = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var e = nend.ToXyz();
             TransactionManager.Instance.TransactionTaskDone();
+
+            if (nstart != null)
+            {
+                nstart.Dispose();
+            }
+            if (nend != null)
+            {
+                nend.Dispose();
+            }
 
             Utils.Log(string.Format("CableTray.ByPoints completed.", ""));
 
@@ -325,7 +354,7 @@ namespace CivilConnection.MEP
         {
             if (!SessionVariables.ParametersCreated)
             {
-                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
             }
             return CableTrayByCurve(cableTrayType, curve);
         }
@@ -341,7 +370,10 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("CableTray.ByCurveFeatureline started...", ""));
 
-            UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            }
 
             var pipe = CableTrayByCurve(cableTrayType, curve);
 
@@ -381,43 +413,7 @@ namespace CivilConnection.MEP
             return pipe;
         }
 
-        #region OLD CODE
-        //public static CableTray[] ByPolyCurve(Revit.Elements.Element cableTrayType, PolyCurve polyCurve)
-        //{
-        //    var oType = cableTrayType.InternalElement as Autodesk.Revit.DB.Electrical.CableTrayType;
-
-        //    IList<ElementId> ids = new List<ElementId>();
-
-        //    TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
-
-        //    foreach(Autodesk.DesignScript.Geometry.Curve c in polyCurve.Curves())
-        //    {
-        //        CableTray ct = CableTrayByCurve(cableTrayType, c);
-        //        ids.Add(ct.InternalMEPCurve.Id);
-        //    }
-
-        //    for (int i = 0; i < GetCableTrayByIds(ids).Length - 1; ++i)
-        //    {
-        //        CableTray ct1 = GetCableTrayByIds(ids)[i];
-        //        CableTray ct2 = GetCableTrayByIds(ids)[i + 1];
-
-        //        try
-        //        {
-        //            Fitting.Elbow(ct1, ct2);
-        //        }
-        //        catch
-        //        {
-        //            Fitting.Elbow(ct2, ct1);
-        //        }
-        //    }
-
-        //    TransactionManager.Instance.TransactionTaskDone();
-
-        //    return GetCableTrayByIds(ids);
-        // }
-        #endregion
-
-
+       
         /// <summary>
         /// Creates a list of CableTrays from a PolyCurve.
         /// </summary>
@@ -431,44 +427,76 @@ namespace CivilConnection.MEP
         {
             Utils.Log(string.Format("CableTray.ByPolyCurve started...", ""));
 
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            }
+
+            double length = polyCurve.Length;
+
             var oType = cableTrayType.InternalElement as Autodesk.Revit.DB.Electrical.CableTrayType;
             IList<CableTray> output = new List<CableTray>();
             IList<Fitting> fittings = new List<Fitting>();
 
-            double length = polyCurve.Length;
-
             int subdivisions = Convert.ToInt32(Math.Ceiling(length / maxLength));
+
+            Utils.Log(string.Format("subdivisions {0}", subdivisions));
 
             IList<Autodesk.DesignScript.Geometry.Point> points = new List<Autodesk.DesignScript.Geometry.Point>();
 
-            points.Add(polyCurve.StartPoint);
-
-            foreach (Autodesk.DesignScript.Geometry.Point p in polyCurve.PointsAtEqualChordLength(subdivisions))
+            try
             {
-                points.Add(p);
+                points.Add(polyCurve.StartPoint);
+
+                foreach (Autodesk.DesignScript.Geometry.Point p in polyCurve.PointsAtEqualChordLength(subdivisions))
+                {
+                    points.Add(p);
+                }
+
+                points.Add(polyCurve.EndPoint);
+
+                points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);  // This is slow
+            }
+            catch
+            {
+                points = Featureline.PointsByChord(polyCurve, maxLength);  // This is slow
             }
 
-            points.Add(polyCurve.EndPoint);
-
-            points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);
+            Utils.Log(string.Format("Points {0}", points.Count));
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
+            Autodesk.DesignScript.Geometry.Point s = null;
+            Autodesk.DesignScript.Geometry.Point e = null;
+            Autodesk.DesignScript.Geometry.Point sp = null;
+            Autodesk.DesignScript.Geometry.Point ep = null;
+            Autodesk.DesignScript.Geometry.Curve curve = null;
+
+            TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
+
             for (int i = 0; i < points.Count - 1; ++i)
             {
-                var s = points[i];
-                var e = points[i + 1];
-                var curve = Autodesk.DesignScript.Geometry.Line.ByStartPointEndPoint(s, e);
+                s = points[i];
+                e = points[i + 1];
+                curve = Autodesk.DesignScript.Geometry.Line.ByStartPointEndPoint(s, e);
 
-                if (!SessionVariables.ParametersCreated)
+                sp = s.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                ep = e.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+
+                var pipe = new CableTray();
+
+                Autodesk.Revit.DB.MEPCurve fi;
+
+                if (DocumentManager.Instance.CurrentDBDocument.IsFamilyDocument)
                 {
-                    UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
+                    fi = null;
+                }
+                else
+                {
+                    fi = Autodesk.Revit.DB.Electrical.CableTray.Create(DocumentManager.Instance.CurrentDBDocument, oType.Id, sp.ToXyz(), ep.ToXyz(), ElementId.InvalidElementId) as Autodesk.Revit.DB.MEPCurve;
                 }
 
-                var sp = s.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-                var ep = e.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-
-                var pipe = new CableTray(oType, sp.ToXyz(), ep.ToXyz());
+                pipe.InitObject((Autodesk.Revit.DB.Electrical.CableTray)fi);
 
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Corridor.Name, featureline.Baseline.CorridorName);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.BaselineIndex.Name, featureline.Baseline.Index);
@@ -488,6 +516,8 @@ namespace CivilConnection.MEP
                 pipe.SetParameterByName(ADSK_Parameters.Instance.EndOffset.Name, Math.Round((double)soe["Offset"], 3));
                 pipe.SetParameterByName(ADSK_Parameters.Instance.EndElevation.Name, Math.Round((double)soe["Elevation"], 3));
                 output.Add(pipe);
+
+                Utils.Log(string.Format("Pipe {0}", pipe.Id));
             }
 
             for (int i = 0; i < output.Count - 1; ++i)
@@ -502,6 +532,8 @@ namespace CivilConnection.MEP
                 fittings.Add(fitting);
             }
 
+            TransactionManager.Instance.TransactionTaskDone();
+         
             Utils.Log(string.Format("CableTray.ByPolyCurve completed.", ""));
 
             return new Dictionary<string, object>() { { "CableTray", output }, { "Fittings", fittings } };

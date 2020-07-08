@@ -75,6 +75,10 @@ namespace CivilConnection
         /// </summary>
         double _maxElevation;
         /// <summary>
+        /// The coordinates
+        /// </summary>
+        double[] _coordinates;
+        /// <summary>
         /// The style
         /// </summary>
         string _style;
@@ -258,19 +262,6 @@ namespace CivilConnection
         public static IList<LandFeatureline> GetDocumentLandFeaturelines(CivilDocument civilDocument)
         {
             Utils.Log(string.Format("LandFeatureline.GetDocumentLandFeaturelines started...", ""));
-
-            //IList<LandFeatureline> output = new List<LandFeatureline>();
-
-            //foreach (AeccSite site in civilDocument._document.Sites)
-            //{
-            //    foreach (AeccLandFeatureLine fl in site.FeatureLines)
-            //    {
-            //        if (fl != null)
-            //        {
-            //            output.Add(new LandFeatureline(fl));
-            //        }
-            //    }
-            //}
 
             IList<LandFeatureline> output = civilDocument.GetLandFeaturelines();
 

@@ -11,13 +11,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
-using Autodesk.DesignScript.Runtime;
-using Autodesk.Revit.DB;
-using RevitServices.Persistence;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using System.IO;
+
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+
+using RevitServices.Persistence;
+using Autodesk.DesignScript.Runtime;
+// TODO: Add Dynamo references to extract the profile via Dynamo Solids / intersection with the view plane
 
 namespace CivilConnection
 {
@@ -135,7 +142,6 @@ namespace CivilConnection
 
                         foreach (Curve c in CutCurvesInView(link, linkedView.Id))
                         {
-                            //linkedCurves.Add(c.CreateTransformed(Transform.CreateTranslation(translation)));
                             linkedCurves.Add(c.CreateTransformed(rliTransform));
                         }
 

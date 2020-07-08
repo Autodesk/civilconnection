@@ -196,8 +196,6 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
-            var totalTransformInverse = totalTransform.Inverse();
-
             var oType = conduitType.InternalElement as Autodesk.Revit.DB.Electrical.ConduitType;
 
             double length = polyCurve.Length;
@@ -219,39 +217,59 @@ namespace CivilConnection.MEP
 
             points.Add(polyCurve.EndPoint);
 
-            points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);
+            points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);  // this is slow
 
             IList<ElementId> ids = new List<ElementId>();
 
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
 
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+
             for (int i = 0; i < points.Count - 1; ++i)
             {
-                Autodesk.DesignScript.Geometry.Point start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var s = start.ToXyz();
-                Autodesk.DesignScript.Geometry.Point end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var e = end.ToXyz();
 
                 Autodesk.Revit.DB.Electrical.Conduit p = Autodesk.Revit.DB.Electrical.Conduit.Create(DocumentManager.Instance.CurrentDBDocument, oType.Id, s, e, ElementId.InvalidElementId);
                 ids.Add(p.Id);
             }
 
+            var res = GetConduitByIds(ids);
+
             for (int i = 0; i < GetConduitByIds(ids).Length - 1; ++i)
             {
-                Conduit ct1 = GetConduitByIds(ids)[i];
-                Conduit ct2 = GetConduitByIds(ids)[i + 1];
+                Conduit ct1 = res[i];
+                Conduit ct2 = res[i + 1];
                 Fitting.Elbow(ct1, ct2);
             }
 
             TransactionManager.Instance.TransactionTaskDone();
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
 
-            totalTransformInverse.Dispose();
+            foreach(var pt in points)
+            {
+                if (pt != null)
+                {
+                    pt.Dispose();
+                }
+            }
+
+            points.Clear();
 
             Utils.Log(string.Format("Conduit.ByPolyCurve completed.", ""));
 
-            return GetConduitByIds(ids);
+            return res;
         }
 
         /// <summary>
@@ -270,7 +288,9 @@ namespace CivilConnection.MEP
 
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
 
-            foreach (Autodesk.DesignScript.Geometry.Curve c in polyCurve.Curves())
+            var curves = polyCurve.Curves().ToList();
+
+            foreach (Autodesk.DesignScript.Geometry.Curve c in curves)
             {
                 Conduit ct = Conduit.ByCurve(conduitType, c);
                 ids.Add(ct.InternalMEPCurve.Id);
@@ -285,6 +305,16 @@ namespace CivilConnection.MEP
 
             TransactionManager.Instance.TransactionTaskDone();
 
+            foreach (var c in curves)
+            {
+                if (c != null)
+                {
+                    c.Dispose();
+                }
+            }
+
+            curves.Clear();
+
             Utils.Log(string.Format("Conduit.ByPolyCurve completed.", ""));
 
             return GetConduitByIds(ids);
@@ -294,19 +324,21 @@ namespace CivilConnection.MEP
         /// Creates a list of Conduits from a PolyCurve.
         /// </summary>
         /// <param name="conduitType">Type of the conduit.</param>
-        /// <param name="polyCurve">The poly curve.</param>
+        /// <param name="polyCurve">The poly curvein WCS.</param>
         /// <param name="maxLength">The maximum length.</param>
         /// <param name="featureline">The featureline.</param>
         /// <returns></returns>
         [MultiReturn(new string[] { "Conduit", "Fittings" })]
-        private static Dictionary<string, object> ByPolyCurve(Revit.Elements.Element conduitType, Autodesk.DesignScript.Geometry.PolyCurve polyCurve, double maxLength, Featureline featureline)
+        public static Dictionary<string, object> ByPolyCurve(Revit.Elements.Element conduitType, Autodesk.DesignScript.Geometry.PolyCurve polyCurve, double maxLength, Featureline featureline)
         {
             Utils.Log(string.Format("Conduit.ByPolyCurve started...", ""));
 
+            if (!SessionVariables.ParametersCreated)
+            {
+                UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument);
+            }
+
             var totalTransform = RevitUtils.DocumentTotalTransform();
-
-            var totalTransformInverse = totalTransform.Inverse();
-
 
             var oType = conduitType.InternalElement as Autodesk.Revit.DB.Electrical.ConduitType;
             IList<Conduit> output = new List<Conduit>();
@@ -329,20 +361,21 @@ namespace CivilConnection.MEP
 
             points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);
 
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+            Autodesk.DesignScript.Geometry.Point sp = null;
+            Autodesk.DesignScript.Geometry.Point ep = null;
+            Autodesk.DesignScript.Geometry.Curve curve = null;
+
             for (int i = 0; i < points.Count - 1; ++i)
             {
-                var s = points[i];
-                var e = points[i + 1];
+                start = points[i];
+                end = points[i + 1];
 
-                var curve = Autodesk.DesignScript.Geometry.Line.ByStartPointEndPoint(s, e);
+                curve = Autodesk.DesignScript.Geometry.Line.ByStartPointEndPoint(start, end);
 
-                if (!SessionVariables.ParametersCreated)
-                {
-                    UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
-                }
-
-                var sp = s.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-                var ep = e.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                sp = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                ep = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
 
                 var pipe = new Conduit(oType, sp.ToXyz(), ep.ToXyz());
 
@@ -350,21 +383,42 @@ namespace CivilConnection.MEP
                 pipe.SetParameterByName(ADSK_Parameters.Instance.BaselineIndex.Name, featureline.Baseline.Index);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Code.Name, featureline.Code);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Side.Name, featureline.Side.ToString());
-                pipe.SetParameterByName(ADSK_Parameters.Instance.X.Name, Math.Round(s.X, 3));
-                pipe.SetParameterByName(ADSK_Parameters.Instance.Y.Name, Math.Round(s.Y, 3));
-                pipe.SetParameterByName(ADSK_Parameters.Instance.Z.Name, Math.Round(s.Z, 3));
-                var soe = featureline.GetStationOffsetElevationByPoint(s);
+                pipe.SetParameterByName(ADSK_Parameters.Instance.X.Name, Math.Round(start.X, 3));
+                pipe.SetParameterByName(ADSK_Parameters.Instance.Y.Name, Math.Round(start.Y, 3));
+                pipe.SetParameterByName(ADSK_Parameters.Instance.Z.Name, Math.Round(start.Z, 3));
+                var soe = featureline.GetStationOffsetElevationByPoint(start);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Station.Name, Math.Round((double)soe["Station"], 3));
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Offset.Name, Math.Round((double)soe["Offset"], 3));
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Elevation.Name, Math.Round((double)soe["Elevation"], 3));
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Update.Name, 1);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Delete.Name, 0);
-                soe = featureline.GetStationOffsetElevationByPoint(e);
+                soe = featureline.GetStationOffsetElevationByPoint(end);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.EndStation.Name, Math.Round((double)soe["Station"], 3));
                 pipe.SetParameterByName(ADSK_Parameters.Instance.EndOffset.Name, Math.Round((double)soe["Offset"], 3));
                 pipe.SetParameterByName(ADSK_Parameters.Instance.EndElevation.Name, Math.Round((double)soe["Elevation"], 3));
 
                 output.Add(pipe);
+
+                if (start != null)
+                {
+                    start.Dispose();
+                }
+                if (end != null)
+                {
+                    end.Dispose();
+                }
+                if (sp != null)
+                {
+                    sp.Dispose();
+                }
+                if (ep != null)
+                {
+                    ep.Dispose();
+                }
+                if (curve != null)
+                {
+                    curve.Dispose();
+                }
             }
 
             for (int i = 0; i < output.Count - 1; ++i)
@@ -379,9 +433,15 @@ namespace CivilConnection.MEP
                 fittings.Add(fitting);
             }
 
-            totalTransform.Dispose();
+            foreach (var pt in points)
+            {
+                if (pt != null)
+                {
+                    pt.Dispose();
+                }
+            }
 
-            totalTransformInverse.Dispose();
+            points.Clear();
 
             Utils.Log(string.Format("Conduit.ByPolyCurve completed.", ""));
 
@@ -412,12 +472,19 @@ namespace CivilConnection.MEP
                 UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
             }
             var oType = conduitType.InternalElement as Autodesk.Revit.DB.Electrical.ConduitType;
-            start = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var s = start.ToXyz();
-            end = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var e = end.ToXyz();
+            var nstart = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var s = nstart.ToXyz();
+            var nend = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var e = nend.ToXyz();
 
-            totalTransform.Dispose();
+            if (nstart != null)
+            {
+                nstart.Dispose();
+            }
+            if (nend != null)
+            {
+                nend.Dispose();
+            }
 
             Utils.Log(string.Format("Conduit.ByPoints completed.", ""));
 
@@ -446,7 +513,14 @@ namespace CivilConnection.MEP
             Autodesk.DesignScript.Geometry.Point end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var e = end.ToXyz();
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
 
             Utils.Log(string.Format("Conduit.ByCurve completed.", ""));
 
@@ -470,16 +544,14 @@ namespace CivilConnection.MEP
             {
                 UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
             }
-            var oType = conduitType.InternalElement as Autodesk.Revit.DB.Electrical.ConduitType;
-            Autodesk.DesignScript.Geometry.Point start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var s = start.ToXyz();
-            Autodesk.DesignScript.Geometry.Point end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var e = end.ToXyz();
 
-           var pipe =  new Conduit(oType, s, e);
+            var pipe = Conduit.ByCurve(conduitType, curve);  //  new Conduit(oType, s, e);
 
-            var startSOE = featureline.GetStationOffsetElevationByPoint(curve.StartPoint);
-            var endSOE = featureline.GetStationOffsetElevationByPoint(curve.EndPoint);
+            var start = curve.StartPoint;
+            var end = curve.EndPoint;
+
+            var startSOE = featureline.GetStationOffsetElevationByPoint(start);
+            var endSOE = featureline.GetStationOffsetElevationByPoint(end);
 
             double startStation = (double)startSOE["Station"];
             double startOffset = (double)startSOE["Offset"];
@@ -509,7 +581,14 @@ namespace CivilConnection.MEP
             pipe.SetParameterByName(ADSK_Parameters.Instance.EndRegionRelative.Name, endStation - featureline.Start);  // 1.1.0
             pipe.SetParameterByName(ADSK_Parameters.Instance.EndRegionNormalized.Name, (endStation - featureline.Start) / (featureline.End - featureline.Start));  // 1.1.0
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
 
             Utils.Log(string.Format("Conduit.ByCurveFeatureline completed.", ""));
 

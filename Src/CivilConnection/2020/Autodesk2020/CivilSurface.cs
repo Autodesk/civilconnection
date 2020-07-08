@@ -87,7 +87,6 @@ namespace CivilConnection
 
                 catch (Exception ex)
                 {
-                    // elevations.Add("The surface elevation at selected point is not found.");
                     Utils.Log(string.Format("ERROR: CivilSurface.GetElevationAtPoint: The surface elevation at selected point is not found, {0}", ex.Message));
 
                     elevations.Add(null);
@@ -106,19 +105,23 @@ namespace CivilConnection
         /// <returns>
         /// The List of Points
         /// </returns>
-        public List<List<object>> GetElevationsAlongLine(List<Line> lines)  // author: Atul Tegar
+        public List<List<Point>> GetElevationsAlongLine(List<Line> lines)  // author: Atul Tegar
         {
             Utils.Log(string.Format("CivilSurface.GetElevationsAlongLine started...", ""));
 
-            List<List<object>> pointsOnLine = new List<List<object>>();
+            List<List<Point>> pointsOnLine = new List<List<Point>>();
+
+            Point startPoint = null;
+
+            Point endPoint = null;
 
             foreach (Line line in lines)
             {
-                List<object> pointList = new List<object>();
+                List<Point> pointList = new List<Point>();
 
-                Point startPoint = line.StartPoint;
+                startPoint = line.StartPoint;
 
-                Point endPoint = line.EndPoint;
+                endPoint = line.EndPoint;
 
                 double[] surfacePoints = this._surface.SampleElevations(startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
 
@@ -138,7 +141,61 @@ namespace CivilConnection
                 pointsOnLine.Add(pointList);
             }
 
+            startPoint.Dispose();
+            endPoint.Dispose();
+
             Utils.Log(string.Format("CivilSurface.GetElevationsAlongLine completed.", ""));
+
+            return pointsOnLine;
+        }
+
+        /// <summary>
+        /// Gets all surface points along line
+        /// </summary>
+        /// <param name="lines">The lines to process</param>
+        /// <returns>
+        /// The List of Points
+        /// </returns>
+        public List<List<Point>> GetPointsAlongLine(List<Line> lines)  // Renamed as it confuses people
+        {
+            Utils.Log(string.Format("CivilSurface.GetPointsAlongLine started...", ""));
+
+            List<List<Point>> pointsOnLine = new List<List<Point>>();
+
+            Point startPoint = null;
+
+            Point endPoint = null;
+
+            foreach (Line line in lines)
+            {
+                List<Point> pointList = new List<Point>();
+
+                startPoint = line.StartPoint;
+
+                endPoint = line.EndPoint;
+
+                double[] surfacePoints = this._surface.SampleElevations(startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+
+                for (int i = 0; i < surfacePoints.Length; i += 3)
+                {
+                    double pX = surfacePoints[i];
+
+                    double pY = surfacePoints[i + 1];
+
+                    double pZ = surfacePoints[i + 2];
+
+                    Point point = Point.ByCoordinates(pX, pY, pZ);
+
+                    pointList.Add(point);
+                }
+
+                pointsOnLine.Add(pointList);
+            }
+
+            startPoint.Dispose();
+            endPoint.Dispose();
+
+            Utils.Log(string.Format("CivilSurface.GetPointsAlongLine completed.", ""));
 
             return pointsOnLine;
         }
@@ -230,7 +287,7 @@ namespace CivilConnection
         /// <returns>
         /// The List of Points
         /// </returns>
-        public List<Point> GetPointsInBoundary(Curve boundary, double tolerance=0.1)
+        public List<Point> GetPointsInBoundary(Curve boundary, double tolerance = 0.1)
         {
             Utils.Log(string.Format("CivilSurface.GetPointsInBoundary started...", ""));
 
@@ -243,73 +300,129 @@ namespace CivilConnection
                 throw new Exception(message);
             }
 
-            if (tolerance <= 0 || tolerance > 1)
-            {
-                tolerance = 1;
-            }
+            Plane xy = Plane.XY();
 
-            Polygon polygon = null;
+            Curve boundaryXY = boundary.PullOntoPlane(xy);
+
+            Surface surf = null;
 
             List<Point> pointsInside = new List<Point>();
 
-            if (boundary is PolyCurve)
+            Polygon polygon = null;
+
+            try
             {
-                // polygon = Polygon.ByPoints(((PolyCurve)boundary).Curves().Select(c => c.StartPoint).Select(p => Point.ByCoordinates(p.X, p.Y)));
+                surf = Surface.ByPatch(boundaryXY);
+            }
+            catch 
+            {
+                string message = "Unable to create surface form boundary.";
 
-                PolyCurve pc = boundary as PolyCurve;
+                Utils.Log(string.Format("ERROR: CivilSurface.GetPointsInBoundary {0}", message));
+            }
 
-                List<Point> points = new List<Point>();
-
-                for (int i = 0; i < pc.NumberOfCurves; ++i)
+            if (surf != null)
+            {
+                pointsInside = this.GetSurfacePoints().Where(p => Point.ByCoordinates(p.X, p.Y).DoesIntersect(surf)).ToList();
+            }
+            else
+            {
+                if (tolerance <= 0 || tolerance > 1)
                 {
-                    Curve c = pc.CurveAtIndex(i);
+                    tolerance = 1;
+                }
 
-                    try
+                if (boundary is PolyCurve)
+                {
+                   
+                    PolyCurve pc = boundary as PolyCurve;
+
+                    List<Point> points = new List<Point>();
+
+                    for (int i = 0; i < pc.NumberOfCurves; ++i)
                     {
-                        Line line = c as Line;
-                        points.Add(c.StartPoint);
-                    }
-                    catch
-                    {
-                        for (double j = 0; j < 1; j = j + tolerance)
+                        Curve c = pc.CurveAtIndex(i);
+
+                        try
                         {
-                            points.Add(c.PointAtParameter(j));
+                            Line line = c as Line;
+                            points.Add(c.StartPoint);
+                        }
+                        catch
+                        {
+                            for (double j = 0; j < 1; j = j + tolerance)
+                            {
+                                points.Add(c.PointAtParameter(j));
+                            }
+                        }
+
+                        c.Dispose();
+                    }
+
+                    polygon = Polygon.ByPoints(points.Select(p => Point.ByCoordinates(p.X, p.Y)));
+
+                    foreach (var item in points)
+                    {
+                        if (item != null)
+                        {
+                            item.Dispose();
                         }
                     }
+
+                    points.Clear();
                 }
-
-                polygon = Polygon.ByPoints(points.Select(p => Point.ByCoordinates(p.X, p.Y)));
-
-                points.Clear();
-            }
-            else if (boundary is Circle)
-            {
-                List<Point> points = new List<Point>();
-
-                for (double j = 0; j < 1; j = j + tolerance)
+                else if (boundary is Circle)
                 {
-                    points.Add(boundary.PointAtParameter(j));
+                    List<Point> points = new List<Point>();
+
+                    for (double j = 0; j < 1; j = j + tolerance)
+                    {
+                        points.Add(boundary.PointAtParameter(j));
+                    }
+
+                    polygon = Polygon.ByPoints(points.Select(p => Point.ByCoordinates(p.X, p.Y)));
+
+                    foreach (var item in points)
+                    {
+                        if (item != null)
+                        {
+                            item.Dispose();
+                        }
+                    }
+
+                    points.Clear();
+
+                }
+                else if (boundary is Rectangle)
+                {
+                    polygon = Polygon.ByPoints(((Rectangle)boundary).Curves().Select(c => c.StartPoint).Select(p => Point.ByCoordinates(p.X, p.Y)));
+                }
+                else if (boundary is Polygon)
+                {
+                    polygon = boundary as Polygon;
                 }
 
-                polygon = Polygon.ByPoints(points.Select(p => Point.ByCoordinates(p.X, p.Y)));
-
-                points.Clear();
-                
+                pointsInside = this.GetSurfacePoints().Where(p => polygon.ContainmentTest(Point.ByCoordinates(p.X, p.Y))).ToList();
             }
-            else if (boundary is Rectangle)
+
+            if (polygon != null)
             {
-                polygon = Polygon.ByPoints(((Rectangle)boundary).Curves().Select(c => c.StartPoint).Select(p => Point.ByCoordinates(p.X, p.Y)));
+                polygon.Dispose(); 
             }
-            else if (boundary is Polygon)
+
+            xy.Dispose();
+
+            if (boundaryXY != null)
             {
-               polygon = boundary as Polygon;
+                boundaryXY.Dispose(); 
             }
 
-             pointsInside = this.GetSurfacePoints().Where(p => polygon.ContainmentTest(Point.ByCoordinates(p.X, p.Y))).ToList();
+            if (surf != null)
+            {
+                surf.Dispose();
+            }
 
-             polygon.Dispose();
-
-             Utils.Log(string.Format("CivilSurface.GetPointsInBoundary completed.", ""));
+            Utils.Log(string.Format("CivilSurface.GetPointsInBoundary completed.", ""));
 
             return pointsInside;
         }
@@ -324,14 +437,84 @@ namespace CivilConnection
         }
 
         /// <summary>
+        /// Gets all the triangle surfaces in a CivilSurface via LandXML
+        /// </summary>
+        /// <param name="landXMLpath">The path to the LandXML that contains the surface export</param>
+        /// <param name="onlyVisible">Processes only the visible faces</param>
+        /// <returns></returns>
+        public IList<Surface> GetTrianglesSurfaces(string landXMLpath, bool onlyVisible = true)
+        {
+            return Utils.GetSurfaceTrianglesByLandXML(this, landXMLpath, onlyVisible);
+        }
+
+        /// <summary>
+        /// Gets all the triangle faces in a CivilSurface via LandXML
+        /// </summary>
+        /// <param name="landXMLpath">The path to the LandXML that contains the surface export</param>
+        /// <param name="onlyVisible">Processes only the visible faces</param>
+        /// <returns></returns>
+        [MultiReturn(new string[]{"Points", "Faces"})]
+        public Dictionary<string, object> GetFacesSurfaces(string landXMLpath, bool onlyVisible = true)
+        {
+            return Utils.GetFacesLandXML(this, landXMLpath, onlyVisible);
+        }
+
+        /// <summary>
         /// Joins the surfaces recursively into a Polysurface
         /// </summary>
         /// <param name="surfaces">The surfaces to join</param>
         /// <param name="limit">The amount of surfaces to join with recursion</param>
         /// <returns></returns>
-        public static IList<Surface> JoinSurfaces(IList<Surface> surfaces, int limit=100)
+        public static IList<Surface> JoinSurfaces(IList<Surface> surfaces, int limit = 100)
         {
             return Utils.JoinSurfaces(surfaces, limit);
+        }
+
+        /// <summary>
+        /// Get intersection point between the line with start point and direction on the surface 
+        /// </summary>
+        /// <param name="point">The point to process</param>
+        /// <param name="vector">The direction vector</param>
+        /// <returns>
+        /// The intersection point
+        /// </returns>
+        public Point GetIntersectionPoint(Point point, Vector vector) // author: Atul Tegar
+        {
+            Utils.Log(string.Format("CivilSurface.GetIntersectionPoint Started...", ""));
+
+            Point point2 = null;
+            double p1X = point.X;
+            double p1Y = point.Y;
+            double p1Z = point.Z;
+
+            double[] p1 = { p1X, p1Y, p1Z };
+
+            double vX = vector.X;
+            double vY = vector.Y;
+            double vZ = vector.Z;
+
+            double[] direction = { vX, vY, vZ };
+
+            try
+            {
+                var intPoint = this._surface.IntersectPointWithSurface(p1, direction);
+
+                double p2X = intPoint[0];
+                double p2Y = intPoint[1];
+                double p2Z = intPoint[2];
+                point2 = Point.ByCoordinates(p2X, p2Y, p2Z);
+
+            }
+
+            catch (Exception ex)
+            {
+                Utils.Log(string.Format("ERROR: CivilSurface.GetIntersectionPoint: No intersection with vector and surface found, {0}", ex.Message));
+                point2 = null;
+            }
+
+            Utils.Log(string.Format("CivilSurface.GetIntersectionPoint completed.", ""));
+
+            return point2;
         }
 
 

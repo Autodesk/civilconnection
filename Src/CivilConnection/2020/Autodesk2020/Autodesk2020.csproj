@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{28105AE1-A1CC-43AC-9EEA-28802E06A547}</ProjectGuid>
@@ -9,12 +9,25 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CivilConnection</RootNamespace>
     <AssemblyName>Autodesk2020</AssemblyName>
-    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{28105AE1-A1CC-43AC-9EEA-28802E06A547}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CivilConnection</RootNamespace>
+    <AssemblyName>Autodesk2021</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <!--PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -33,98 +46,131 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+  </PropertyGroup-->
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">
+    <OutputPath>bin\2020\</OutputPath>
+    <DefineConstants>C2020</DefineConstants>
+    <DocumentationFile>bin\2020\Autodesk2020.xml</DocumentationFile>
+    <Optimize>true</Optimize>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">
+    <OutputPath>bin\2021\</OutputPath>
+    <DefineConstants>C2021</DefineConstants>
+    <Optimize>true</Optimize>
+    <DocumentationFile>bin\2021\Autodesk2021.xml</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <C3DVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2020</C3DVersion>
+    <C3DVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2021</C3DVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2.3</DynCoreVersion>
+    <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.5</DynCoreVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2.3</DynRevitVersion>
+    <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.5</DynRevitVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DynRevitPath Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">..\..\..\..\..\..\..\Revit2020\Revit 2020</DynRevitPath>
+    <DynRevitPath Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">C:\Program Files\Autodesk\Revit 2021</DynRevitPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>CivilConnection</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autodesk.AEC.Interop.Base">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\ACA\Autodesk.AEC.Interop.Base.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\ACA\Autodesk.AEC.Interop.Base.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AEC.Interop.UIBase">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\ACA\Autodesk.AEC.Interop.UIBase.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\ACA\Autodesk.AEC.Interop.UIBase.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AECC.Interop.Land">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\C3D\Autodesk.AECC.Interop.Land.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\C3D\Autodesk.AECC.Interop.Land.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AECC.Interop.Roadway">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\C3D\Autodesk.AECC.Interop.Roadway.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\C3D\Autodesk.AECC.Interop.Roadway.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AECC.Interop.UiLand">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\C3D\Autodesk.AECC.Interop.UiLand.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\C3D\Autodesk.AECC.Interop.UiLand.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AECC.Interop.UiRoadway">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\C3D\Autodesk.AECC.Interop.UiRoadway.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\C3D\Autodesk.AECC.Interop.UiRoadway.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AutoCAD.Interop">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\Autodesk.AutoCAD.Interop.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\Autodesk.AutoCAD.Interop.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AutoCAD.Interop.Common">
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2020\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD $(C3DVersion)\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="CoreNodeModels">
-      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\nodes\CoreNodeModels.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\nodes\CoreNodeModels.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="CoreNodeModelsWpf">
-      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\nodes\CoreNodeModelsWpf.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\nodes\CoreNodeModelsWpf.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DSCoreNodes">
-      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\DSCoreNodes.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\DSCoreNodes.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DynamoCore">
-      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\DynamoCore.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\DynamoCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DynamoCoreWpf">
-      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\DynamoCoreWpf.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\DynamoCoreWpf.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DynamoRevitDS">
-      <HintPath>..\..\..\..\..\..\..\Revit2020\Revit 2020\AddIns\DynamoForRevit\Revit\DynamoRevitDS.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\Revit\DynamoRevitDS.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DynamoServices">
-      <HintPath>..\..\..\..\..\..\..\Revit2020\Revit 2020\AddIns\DynamoForRevit\DynamoServices.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\DynamoServices.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="NewtonSoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Revit2020\Revit 2020\NewtonSoft.Json.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\NewtonSoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ProtoCore">
-      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\ProtoCore.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\ProtoCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ProtoGeometry">
-      <HintPath>C:\Program Files\Dynamo\Dynamo Core\2.1\ProtoGeometry.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\ProtoGeometry.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPI">
-      <HintPath>..\..\..\..\..\..\..\Revit2020\Revit 2020\RevitAPI.dll</HintPath>
+      <HintPath>$(DynRevitPath)\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>..\..\..\..\..\..\..\Revit2020\Revit 2020\RevitAPIUI.dll</HintPath>
+      <HintPath>$(DynRevitPath)\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitNodes">
-      <HintPath>..\..\..\..\..\..\..\Revit2020\Revit 2020\AddIns\DynamoForRevit\Revit\RevitNodes.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\Revit\RevitNodes.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitServices">
-      <HintPath>..\..\..\..\..\..\..\Revit2020\Revit 2020\AddIns\DynamoForRevit\Revit\RevitServices.dll</HintPath>
+      <HintPath>$(DynRevitPath)\AddIns\DynamoForRevit\Revit\RevitServices.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -180,7 +226,11 @@
     <Compile Include="UtilsSectionView.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="pkg.json">
+    <None Include="app.config" />
+    <None Include="pkg2021.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="pkg2020.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -188,30 +238,31 @@
   <Target Name="AfterBuild">
     <Message Importance="High" Text="________________________________________" />
     <Message Importance="High" Text="Creating Dynamo Package..." />
-    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\2.1\packages\CivilConnection2020\" />
-    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\2.1\packages\CivilConnection2020\bin" />
-    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\2.1\packages\CivilConnection2020\dyf" />
-    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\2.1\packages\CivilConnection2020\extra" />
+    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\$(DynRevitVersion)\packages\CivilConnection$(C3DVersion)\" />
+    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\$(DynRevitVersion)\packages\CivilConnection$(C3DVersion)\bin" />
+    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\$(DynRevitVersion)\packages\CivilConnection$(C3DVersion)\dyf" />
+    <MakeDir Directories="$(AppData)\Dynamo\Dynamo Revit\$(DynRevitVersion)\packages\CivilConnection$(C3DVersion)\extra" />
     <!--Defining folders to copy-->
     <ItemGroup>
       <SourceDlls Include="$(TargetDir)*.dll" />
       <SourcePdbs Include="$(TargetDir)*.pdb" />
-      <SourcePkg Include="$(TargetDir)pkg.json" />
+      <SourcePkgVersion Include="$(TargetDir)pkg$(C3DVersion).json" />
       <SourceXML Include="$(TargetDir)*.xml" />
     </ItemGroup>
     <!--Copying to Build Folder-->
-    <Copy SourceFiles="@(SourceDlls)" DestinationFolder="$(TargetDir)\CivilConnection2020\bin\" />
-    <Copy SourceFiles="@(SourcePdbs)" DestinationFolder="$(TargetDir)\CivilConnection2020\bin\" />
-    <Copy SourceFiles="@(SourceXML)" DestinationFolder="$(TargetDir)\CivilConnection2020\bin\" />
-    <Copy SourceFiles="@(SourcePkg)" DestinationFolder="$(TargetDir)\CivilConnection2020\" />
+    <Copy SourceFiles="@(SourceDlls)" DestinationFolder="$(TargetDir)\CivilConnection$(C3DVersion)\bin\" />
+    <Copy SourceFiles="@(SourcePdbs)" DestinationFolder="$(TargetDir)\CivilConnection$(C3DVersion)\bin\" />
+    <Copy SourceFiles="@(SourceXML)" DestinationFolder="$(TargetDir)\CivilConnection$(C3DVersion)\bin\" />
+    <Move SourceFiles="@(SourcePkgVersion)" DestinationFiles="$(TargetDir)\CivilConnection$(C3DVersion)\pkg.json" />
     <ItemGroup>
-      <SourcePackage Include="$(TargetDir)\CivilConnection2020\**\*.*" />
+      <SourcePackage Include="$(TargetDir)\CivilConnection$(C3DVersion)\**\*.*" />
     </ItemGroup>
     <PropertyGroup>
+      <DeployFolder>$(AppData)\Dynamo\Dynamo Revit\$(DynRevitVersion)\packages\CivilConnection$(C3DVersion)\</DeployFolder>
       <!--Debug -->
-      <DeployFolder Condition="'$(Configuration)' == 'Debug'">$(AppData)\Dynamo\Dynamo Revit\2.2\packages\CivilConnection2020\</DeployFolder>
+      <!--DeployFolder Condition="'$(Configuration)' == '2020'">$(AppData)\Dynamo\Dynamo Revit\$(DynRevitVersion)\packages\CivilConnection$(C3DVersion)\</DeployFolder-->
       <!--Release -->
-      <DeployFolder Condition="'$(Configuration)' == 'Release'">$(AppData)\Dynamo\Dynamo Revit\2.2\packages\CivilConnection2020\</DeployFolder>
+      <!-->DeployFolder Condition="'$(Configuration)' == 'Release'">$(AppData)\Dynamo\Dynamo Revit\$(DynRevitVersion)\packages\CivilConnection$(C3DVersion)\</DeployFolder-->
     </PropertyGroup>
     <Copy SourceFiles="@(SourcePackage)" DestinationFolder="$(DeployFolder)\%(RecursiveDir)" />
     <Message Importance="High" Text="Package created." />

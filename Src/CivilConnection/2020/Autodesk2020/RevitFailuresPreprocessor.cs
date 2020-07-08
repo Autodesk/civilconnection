@@ -11,9 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-using Autodesk.DesignScript.Runtime;
 using Autodesk.Revit.DB;
+using Autodesk.DesignScript.Runtime;
 
 namespace CivilConnection
 {
@@ -38,11 +43,7 @@ namespace CivilConnection
         public FailureProcessingResult PreprocessFailures(FailuresAccessor fa)
         {
             fa.DeleteAllWarnings();
-            //if (fa.CanCommitPendingTransaction())
-            //{
-            //    return FailureProcessingResult.ProceedWithCommit;
-            //}
-
+           
             return FailureProcessingResult.Continue;
         }
     }

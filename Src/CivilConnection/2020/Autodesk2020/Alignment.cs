@@ -212,7 +212,7 @@ namespace CivilConnection
 
             return output;
         }
-        
+
 
         /// <summary>
         /// Factorial function. Returns a double to allow for values bigger than 20!
@@ -232,29 +232,55 @@ namespace CivilConnection
             {
                 return output;
             }
-            else 
+            else
             {
                 for (int i = 1; i <= f; i++)
                 {
                     output *= i;
                 }
             }
-            
+
             return output;
         }
 
         /// <summary>
         /// Returns the list of Dynamo curves that defines the Alignment.
         /// </summary>
-        /// <returns>A list of lines and arcs that decribe the Alignment.</returns>
+        /// <param name="tessellation">The length of the tessellation for spirals, by default is 1 unit.</param>
+        /// <returns>A list of curves that represent the Alignment.</returns>
         /// <remarks>The tool returns only lines and arcs.</remarks>
-        public IList<Curve> GetCurves()
+        public IList<Curve> GetCurves(double tessellation = 1)
         {
             Utils.Log("Alignment.GetCurves Started...");
 
             IList<Curve> output = new List<Curve>();
 
-            foreach (AeccAlignmentEntity e in this._entities)
+            var entities = new List<AeccAlignmentEntity>();
+
+            var first = this._entities.FirstEntity;
+            var last = this._entities.LastEntity;
+            var ce = this._entities.Item(first);
+
+            for (int c = 0; c < this._entities.Count; ++c)
+            {
+                ce = this._entities.Item(c);
+
+                if (ce.Type != AeccAlignmentEntityType.aeccArc && ce.Type != AeccAlignmentEntityType.aeccTangent)
+                {
+                    for (int i = 0; i < ce.SubEntityCount; ++i)
+                    {
+                        entities.Add(ce.SubEntity(i));
+                    }
+                }
+                else
+                {
+                    entities.Add(ce);
+                }
+            }
+
+            //Utils.Log(string.Format("Entities: {0}", entities.Count));
+
+            foreach (AeccAlignmentEntity e in entities)
             {
                 switch (e.Type)
                 {
@@ -262,234 +288,86 @@ namespace CivilConnection
                         {
                             AeccAlignmentTangent a = e as AeccAlignmentTangent;
 
-                            output.Add(Line.ByStartPointEndPoint(
-                                Point.ByCoordinates(a.StartEasting, a.StartNorthing),
-                                Point.ByCoordinates(a.EndEasting, a.EndNorthing)));
+                            var start = Point.ByCoordinates(a.StartEasting, a.StartNorthing);
+                            var end = Point.ByCoordinates(a.EndEasting, a.EndNorthing);
+
+                            output.Add(Line.ByStartPointEndPoint(start, end));
+
+                            start.Dispose();
+                            end.Dispose();
+
                             break;
                         }
                     case AeccAlignmentEntityType.aeccArc:
                         {
                             AeccAlignmentArc a = e as AeccAlignmentArc;
 
+                            Point center = Point.ByCoordinates(a.CenterEasting, a.CenterNorthing);
+                            Point start = Point.ByCoordinates(a.StartEasting, a.StartNorthing);
+                            Point end = Point.ByCoordinates(a.EndEasting, a.EndNorthing);
+
                             Arc arc = null;
                             if (!a.Clockwise)
                             {
-                                arc = Arc.ByCenterPointStartPointEndPoint(
-                                 Point.ByCoordinates(a.CenterEasting, a.CenterNorthing),
-                                 Point.ByCoordinates(a.StartEasting, a.StartNorthing),
-                                 Point.ByCoordinates(a.EndEasting, a.EndNorthing));
+                                arc = Arc.ByCenterPointStartPointEndPoint(center, start, end);
                             }
-                            else 
+                            else
                             {
-                                arc = Arc.ByCenterPointStartPointEndPoint(
-                                     Point.ByCoordinates(a.CenterEasting, a.CenterNorthing),
-                                     Point.ByCoordinates(a.EndEasting, a.EndNorthing),
-                                     Point.ByCoordinates(a.StartEasting, a.StartNorthing));
+                                arc = Arc.ByCenterPointStartPointEndPoint(center, end, start);
                             }
-                            
 
                             output.Add(arc);
 
-                            //var p1 = a.PassThroughPoint1;
-                            //var p2 = a.PassThroughPoint2;
-                            //var p3 = a.PassThroughPoint3;
+                            center.Dispose();
+                            start.Dispose();
+                            end.Dispose();
 
-                            //output.Add(Arc.ByThreePoints(Point.ByCoordinates(p1.X, p1.Y),
-                            //   Point.ByCoordinates(p2.X, p2.Y),
-                            //   Point.ByCoordinates(p3.X, p3.Y)));
                             break;
                         }
-                    case AeccAlignmentEntityType.aeccSpiralCurveSpiralGroup:
+                    default:
                         {
-                            AeccAlignmentSCSGroup a = e as AeccAlignmentSCSGroup;
+                            AeccAlignmentCurve a = e as AeccAlignmentCurve;
 
-                            AeccAlignmentEntity before = this._entities.Item(e.EntityBefore);
-                            AeccAlignmentEntity after = this._entities.Item(e.EntityAfter);
+                            var pts = new List<Point>();
 
-                            Curve beforeCurve = null;
-                            Curve afterCurve = null;
+                            double start = a.StartingStation;
+                            double end = a.EndingStation;
 
-                            if (before.Type == AeccAlignmentEntityType.aeccTangent)
+                            double length = a.Length;
+
+                            int subs = Convert.ToInt32(Math.Ceiling(length / tessellation));
+
+                            if (subs < 10)
                             {
-                                AeccAlignmentTangent b = before as AeccAlignmentTangent;
-
-                                beforeCurve = Line.ByStartPointEndPoint(
-                                Point.ByCoordinates(b.StartEasting, b.StartNorthing),
-                                Point.ByCoordinates(b.EndEasting, b.EndNorthing));
-                            }
-                            else if (before.Type == AeccAlignmentEntityType.aeccArc)
-                            {
-                                AeccAlignmentArc b = before as AeccAlignmentArc;
-
-                                beforeCurve = Arc.ByCenterPointStartPointEndPoint(
-                                Point.ByCoordinates(b.CenterEasting, b.CenterNorthing),
-                                Point.ByCoordinates(b.StartEasting, b.StartNorthing),
-                                Point.ByCoordinates(b.EndEasting, b.EndNorthing));
+                                subs = 10;
                             }
 
-                            if (after.Type == AeccAlignmentEntityType.aeccTangent)
-                            {
-                                AeccAlignmentTangent b = after as AeccAlignmentTangent;
+                            double delta = length / subs;
 
-                                afterCurve = Line.ByStartPointEndPoint(
-                                Point.ByCoordinates(b.StartEasting, b.StartNorthing),
-                                Point.ByCoordinates(b.EndEasting, b.EndNorthing));
-                            }
-                            else if (after.Type == AeccAlignmentEntityType.aeccArc)
+                            for (int i = 0; i < subs + 1; ++i)
                             {
-                                AeccAlignmentArc b = after as AeccAlignmentArc;
+                                double x = 0;
+                                double y = 0;
 
-                                afterCurve = Arc.ByCenterPointStartPointEndPoint(
-                                Point.ByCoordinates(b.CenterEasting, b.CenterNorthing),
-                                Point.ByCoordinates(b.StartEasting, b.StartNorthing),
-                                Point.ByCoordinates(b.EndEasting, b.EndNorthing));
+                                this._alignment.PointLocation(start + i * delta, 0, out x, out y);
+
+                                pts.Add(Point.ByCoordinates(x, y));
                             }
 
-                            if (afterCurve != null && beforeCurve != null)
+                            // Create spiral at 0,0
+                            NurbsCurve spiral = NurbsCurve.ByPoints(pts);  // Degree by default is 3
+
+                            output.Add(spiral);
+
+                            foreach (var pt in pts)
                             {
-                                output.Add(Curve.ByBlendBetweenCurves(beforeCurve, afterCurve));
-                            }
-
-                            // Andrew Milford wrote the code for the spirals using Fourier approximation
-                            // Get some parameters
-                            int entCnt = a.SubEntityCount;
-
-                            for (int i = 0; i < entCnt; i++)
-                            {
-                                AeccAlignmentEntity subEnt = a.SubEntity(i);
-                                AeccAlignmentEntityType alignType = subEnt.Type;
-
-                                switch (alignType)
+                                if (pts != null)
                                 {
-                                    case AeccAlignmentEntityType.aeccTangent:
-                                        break;
-                                    case AeccAlignmentEntityType.aeccArc:
-                                        AeccAlignmentArc arc = subEnt as AeccAlignmentArc;
-                                        Arc dArc = null;
-                                        if (!arc.Clockwise)
-                                        {
-                                            dArc = Arc.ByCenterPointStartPointEndPoint(
-                                             Point.ByCoordinates(arc.CenterEasting, arc.CenterNorthing),
-                                             Point.ByCoordinates(arc.StartEasting, arc.StartNorthing),
-                                             Point.ByCoordinates(arc.EndEasting, arc.EndNorthing));
-                                        }
-                                        else
-                                        {
-                                            dArc = Arc.ByCenterPointStartPointEndPoint(
-                                                 Point.ByCoordinates(arc.CenterEasting, arc.CenterNorthing),
-                                                 Point.ByCoordinates(arc.EndEasting, arc.EndNorthing),
-                                                 Point.ByCoordinates(arc.StartEasting, arc.StartNorthing));
-                                        }
-
-                                        output.Add(dArc);
-
-                                        break;
-                                    case AeccAlignmentEntityType.aeccSpiral:
-
-                                        // calculate the spiral intervals
-                                        AeccAlignmentSpiral s = subEnt as AeccAlignmentSpiral;
-                                        double radIn = s.RadiusIn;
-                                        double radOut = s.RadiusOut;
-                                        double length = s.Length;
-                                        AeccAlignmentSpiralDirectionType dir = s.Direction;
-                                        
-                                        // Identify the spiral is the start or end
-                                        bool isStart = true;
-                                        
-                                        double radius;
-                                        if (Double.IsInfinity(radIn))
-                                        {
-                                            // Start Spiral
-                                            radius = radOut;
-                                        }
-                                        else
-                                        {
-                                            // End Spiral
-                                            radius = radIn;
-                                            isStart = false;
-                                        }
-                                        
-                                        double A = s.A; // Flatness of spiral
-                                        double RL = radius * length;
-                                        //double A = Math.Sqrt(radius * length);
-
-                                        List<Point> pts = new List<Point>();
-                                        double n = 0;
-                                        double interval = 2;  // 2 meters intervals TODO what if the curve is shorter than 2 meters?
-                                        int num = Convert.ToInt32(Math.Ceiling(length / interval));
-                                        double step = length / num;
-
-                                        double dirStart = s.StartDirection;
-                                        double dirEnd = s.EndDirection;
-
-                                        Point ptPI = Point.ByCoordinates(s.PIEasting, s.PINorthing, 0);
-                                        Point ptStart = Point.ByCoordinates(s.StartEasting, s.StartNorthing, 0);
-                                        Point ptEnd = Point.ByCoordinates(s.EndEasting, s.EndNorthing, 0);
-                                        Point pt;
-                                        double angRot;
-
-                                        /*
-                                         * Paolo Serra - Implementation of Fourier's Transform for the clothoid for a given number of terms
-                                         x = Sum[(-1)^t * n ^(4*t+1) / ((2*t)!*(4*t+1)*(2*RL)^(2*t))] for t = 0 -> N
-                                         y = Sum[(-1)^t * n ^(4*t+3) / ((2^t + 1)!*(4*t+3)*(2*RL)^(2*t + 1))] for t = 0 -> N
-                                         */
-
-                                        for (int j = 0; j <= num; j++)
-                                        {
-                                            double x = 0;
-                                            double y = 0;
-
-                                            for (int t = 0; t < 8; t++)  // first 8 terms of the transform
-                                            {
-                                                x += Math.Pow(-1, t) * Math.Pow(n, 4 * t + 1) / (Factorial(2 * t) * (4 * t + 1) * Math.Pow(2 * RL, 2 * t));
-                                                y += Math.Pow(-1, t) * Math.Pow(n, 4 * t + 3) / (Factorial(2 * t + 1) * (4 * t + 3) * Math.Pow(2 * RL, 2 * t + 1));
-                                            }
-
-                                            //double x = n - ((Math.Pow(n, 5)) / (40 * Math.Pow(RL, 2))) + ((Math.Pow(n, 9)) / (3456 * Math.Pow(RL, 4))) - ((Math.Pow(n, 13)) / (599040 * Math.Pow(RL, 6))) + ((Math.Pow(n, 17)) / (175472640 * Math.Pow(RL, 8)));
-                                            //double y = ((Math.Pow(n, 3)) / (6 * RL)) - ((Math.Pow(n, 7)) / (336 * Math.Pow(RL, 3))) + (Math.Pow(n, 11) / (42240 * Math.Pow(RL, 5))) - (Math.Pow(n, 15) / (9676800 * Math.Pow(RL, 7)));
-
-                                            // Flip the Y offset if start spiral is CW OR end spiral is CCW
-                                            if ((isStart && dir == AeccAlignmentSpiralDirectionType.aeccAlignmentSpiralDirectionRight) ||
-                                                    (!isStart && dir == AeccAlignmentSpiralDirectionType.aeccAlignmentSpiralDirectionLeft)
-                                                )
-                                            {
-                                                y *= -1;
-                                            }
-
-                                            pts.Add(Point.ByCoordinates(x, y, 0));
-                                            n += step;
-                                        }
-                                        
-                                        // Create spiral at 0,0
-                                        NurbsCurve spiralBase = NurbsCurve.ByControlPoints(pts, 3);  // Degree by default is 3
-                                       
-                                        if (isStart)
-                                        {
-                                            pt = ptStart;
-                                            angRot = 90 - (dirStart * (180 / Math.PI));
-                                        }
-                                        else
-                                        {
-                                            pt = ptEnd;
-                                            angRot = 270 - (dirEnd * (180 / Math.PI));
-                                        }
-                                           
-
-                                        // Coordinate system on outer spiral point
-                                        CoordinateSystem csOrig = CoordinateSystem.ByOrigin(pt);
-                                        CoordinateSystem cs = csOrig.Rotate(pt, Vector.ZAxis(), angRot);
-
-                                        NurbsCurve spiral = (NurbsCurve)spiralBase.Transform(cs);
-                                      
-                                        output.Add(spiral);
-
-                                        break;
-                                   
-                                    default:
-                                        break;
+                                    pt.Dispose();
                                 }
-
                             }
+
+                            pts.Clear();
 
                             break;
                         }
@@ -585,7 +463,7 @@ namespace CivilConnection
         /// </summary>
         /// <param name="point">The point.</param>
         /// <returns></returns>
-        [MultiReturn(new string[] { "Station", "Offset", "Elevation"})]
+        [MultiReturn(new string[] { "Station", "Offset", "Elevation" })]
         public Dictionary<string, object> GetStationOffsetElevation(Point point)
         {
             double station = 0;
@@ -593,7 +471,7 @@ namespace CivilConnection
 
             ((AeccAlignment)this.InternalElement).StationOffset(point.X, point.Y, out station, out offset);
 
-            return new Dictionary<string, object>() { {"Station", station}, {"Offset", offset}, {"Elevation", point.Z}};
+            return new Dictionary<string, object>() { { "Station", station }, { "Offset", offset }, { "Elevation", point.Z } };
         }
 
         /// <summary>
@@ -603,7 +481,7 @@ namespace CivilConnection
         /// <param name="offset">The offset value.</param>
         /// <param name="elevation">The elevation value.</param>
         /// <returns></returns>
-        public CoordinateSystem CoordinateSystemByStation(double station, double offset=0, double elevation=0)
+        public CoordinateSystem CoordinateSystemByStation(double station, double offset = 0, double elevation = 0)
         {
             Utils.Log("Alignment.CoordinateSystemByStation Started...");
 

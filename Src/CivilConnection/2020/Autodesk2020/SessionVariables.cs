@@ -24,7 +24,6 @@ namespace CivilConnection
     {
         #region PRIVATE PROPERTIES
 
-
         #endregion
 
         #region PUBLIC PROPERTIES
@@ -56,10 +55,15 @@ namespace CivilConnection
         public static bool ParametersCreated { get; set; }
 
         /// <summary>
-        /// Returns a Dynamo CoordinateSystem that represents the Revti Document Total Transform for the session.
+        /// Returns a Dynamo CoordinateSystem that represents the Revit Document Total Transform for the session.
         /// </summary>
-        public static Autodesk.DesignScript.Geometry.CoordinateSystem DocumentTotalTransform { get; set; }
+        public static Autodesk.DesignScript.Geometry.CoordinateSystem DocumentTotalTransform {get;set;}
 
+        /// <summary>
+        /// Returns a Dynamo CoordinateSystem that represents the Revit Document Total Transform Inverse for the session.
+        /// </summary>
+        public static Autodesk.DesignScript.Geometry.CoordinateSystem DocumentTotalTransformInverse {get;set;}
+        
         #endregion
 
         #region CONSTRUCTOR
@@ -70,6 +74,7 @@ namespace CivilConnection
         {
             ParametersCreated = false;
             DocumentTotalTransform = null;
+            DocumentTotalTransformInverse = null;
         }
 
         #endregion

@@ -270,8 +270,6 @@ namespace CivilConnection.Tunnel
             catch (Exception ex)
             {
                 Utils.Log(string.Format("ERROR 0: {0}", ex.Message));
-
-                //return output;
             }
 
             Utils.Log(string.Format("TbmTunnel.ByBaselineRing completed", ""));

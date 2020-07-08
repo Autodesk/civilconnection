@@ -213,16 +213,24 @@ namespace CivilConnection.MEP
             {
                 UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
             }
+
             var oType = pipeType.InternalElement as Autodesk.Revit.DB.Plumbing.PipeType;
             var oSystemType = pipingSystemType.InternalElement as Autodesk.Revit.DB.Plumbing.PipingSystemType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
-            start = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var s = start.ToXyz();
-            end = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
-            var e = end.ToXyz();
+            var nstart = start.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var s = nstart.ToXyz();
+            var nend = end.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            var e = nend.ToXyz();
             var l = level.InternalElement as Autodesk.Revit.DB.Level;
 
-            totalTransform.Dispose();
+            if (nstart != null)
+            {
+                nstart.Dispose();
+            }
+            if (nend != null)
+            {
+                nend.Dispose();
+            }
 
             Utils.Log(string.Format("Pipe.ByPoints completed.", ""));
 
@@ -272,7 +280,14 @@ namespace CivilConnection.MEP
             var e = end.ToXyz();
             var l = level.InternalElement as Autodesk.Revit.DB.Level;
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
 
             Utils.Log(string.Format("Pipe.ByCurve completed.", ""));
 
@@ -296,12 +311,16 @@ namespace CivilConnection.MEP
             {
                 UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
             }
+
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+
             var oType = pipeType.InternalElement as Autodesk.Revit.DB.Plumbing.PipeType;
             var oSystemType = pipingSystemType.InternalElement as Autodesk.Revit.DB.Plumbing.PipingSystemType;
             var totalTransform = RevitUtils.DocumentTotalTransform();
-            var start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var s = start.ToXyz();
-            var end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var e = end.ToXyz();
             var l = level.InternalElement as Autodesk.Revit.DB.Level;
 
@@ -338,7 +357,14 @@ namespace CivilConnection.MEP
             pipe.SetParameterByName(ADSK_Parameters.Instance.EndRegionRelative.Name, endStation - featureline.Start);  // 1.1.0
             pipe.SetParameterByName(ADSK_Parameters.Instance.EndRegionNormalized.Name, (endStation - featureline.Start) / (featureline.End - featureline.Start));  // 1.1.0
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
 
             Utils.Log(string.Format("Pipe.ByCurveFeatureline completed.", ""));
 
@@ -374,11 +400,6 @@ namespace CivilConnection.MEP
             double length = polyCurve.Length;
 
             int subdivisions = Convert.ToInt32(Math.Ceiling(length / maxLength));
-            //double increment = 1 / subdivisions;
-
-            //IList<double> parameters = new List<double>();
-
-            //double parameter = 0;
 
             IList<Autodesk.DesignScript.Geometry.Point> points = new List<Autodesk.DesignScript.Geometry.Point>();
 
@@ -389,12 +410,6 @@ namespace CivilConnection.MEP
                 points.Add(p);
             }
 
-            //while (parameter <= 1)
-            //{
-            //    points.Add(polyCurve.PointAtParameter(parameter));
-            //    parameter = parameter + increment;
-            //}
-
             points.Add(polyCurve.EndPoint);
 
             points = Autodesk.DesignScript.Geometry.Point.PruneDuplicates(points);
@@ -403,11 +418,19 @@ namespace CivilConnection.MEP
 
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
 
+
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+
+            Autodesk.DesignScript.Geometry.Point sp = null;
+            Autodesk.DesignScript.Geometry.Point ep = null;
+            Autodesk.DesignScript.Geometry.Curve curve = null;
+
             for (int i = 0; i < points.Count - 1; ++i)
             {
-                Autodesk.DesignScript.Geometry.Point start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var s = start.ToXyz();
-                Autodesk.DesignScript.Geometry.Point end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var e = end.ToXyz();
 
                 Autodesk.Revit.DB.Plumbing.Pipe p = Autodesk.Revit.DB.Plumbing.Pipe.CreatePlaceholder(DocumentManager.Instance.CurrentDBDocument, oSystemType.Id, oType.Id, l.Id, s, e);
@@ -424,9 +447,9 @@ namespace CivilConnection.MEP
 
             foreach (Pipe pipe in pipes)
             {
-                var curve = pipe.Location.Transform(totalTransformInverse) as Autodesk.DesignScript.Geometry.Curve;
-                var sp = curve.StartPoint;
-                var ep = curve.EndPoint;
+                curve = pipe.Location.Transform(totalTransformInverse) as Autodesk.DesignScript.Geometry.Curve;
+                sp = curve.StartPoint;
+                ep = curve.EndPoint;
 
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Corridor.Name, featureline.Baseline.CorridorName);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.BaselineIndex.Name, featureline.Baseline.Index);
@@ -461,9 +484,37 @@ namespace CivilConnection.MEP
                 fittings.Add(fitting);
             }
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
+            if (sp != null)
+            {
+                sp.Dispose();
+            }
+            if (ep != null)
+            {
+                ep.Dispose();
+            }
 
-            totalTransformInverse.Dispose();
+            if (curve != null)
+            {
+                curve.Dispose();
+            }
+
+            foreach (var item in points)
+            {
+                if (item != null)
+                {
+                    item.Dispose();
+                }
+            }
+
+            points.Clear();
 
             Utils.Log(string.Format("Pipe.ByPolyCurve completed.", ""));
 

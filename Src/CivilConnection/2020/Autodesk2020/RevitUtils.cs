@@ -652,7 +652,7 @@ namespace CivilConnection
         }
 
         /// <summary>
-        /// Documents the total transform.
+        /// Gets the CoordinateSystem of the Revit document total transform.
         /// </summary>
         /// <returns></returns>
         public static CoordinateSystem DocumentTotalTransform()
@@ -671,19 +671,67 @@ namespace CivilConnection
             {
                 var doc = DocumentManager.Instance.CurrentDBDocument;
 
-                var location = doc.ActiveProjectLocation;
+                if (!doc.IsFamilyDocument)
+                {
+                    var location = doc.ActiveProjectLocation;
 
-                var transform = location.GetTotalTransform();
+                    var transform = location.GetTotalTransform();
 
-                cs = CoordinateSystem.ByOriginVectors(transform.Origin.ToPoint(), transform.BasisX.ToVector(), transform.BasisY.ToVector(), transform.BasisZ.ToVector());
+                    cs = CoordinateSystem.ByOriginVectors(transform.Origin.ToPoint(), transform.BasisX.ToVector(), transform.BasisY.ToVector(), transform.BasisZ.ToVector());
+                }
 
                 SessionVariables.DocumentTotalTransform = cs;
             }
+
+            SessionVariables.DocumentTotalTransformInverse = cs.Inverse();
+
+            Utils.Log(string.Format("{0}", cs));
 
             Utils.Log(string.Format("RevitUtils.DocumentTotalTransform completed.", ""));
 
             return cs;
         }
+
+        /// <summary>
+        /// Gets the Inverse CoordinateSystem of the Revit document total transform.
+        /// </summary>
+        /// <returns></returns>
+        public static CoordinateSystem DocumentTotalTransformInverse()
+        {
+            // TODO Consider creating a session variable so it gets calculated only once
+            // The risk is that if the user changes the shared coordinates in the session it will not update
+            Utils.Log(string.Format("RevitUtils.DocumentTotalTransformInverse started...", ""));
+
+            CoordinateSystem cs = null;
+
+            if (SessionVariables.DocumentTotalTransformInverse != null)
+            {
+                cs = SessionVariables.DocumentTotalTransformInverse;
+            }
+            else
+            {
+                var doc = DocumentManager.Instance.CurrentDBDocument;
+
+                if (!doc.IsFamilyDocument)
+                {
+                    var location = doc.ActiveProjectLocation;
+
+                    var transform = location.GetTotalTransform();
+
+                    cs = CoordinateSystem.ByOriginVectors(transform.Origin.ToPoint(), transform.BasisX.ToVector(), transform.BasisY.ToVector(), transform.BasisZ.ToVector());
+                }
+
+                SessionVariables.DocumentTotalTransform = cs;
+                SessionVariables.DocumentTotalTransformInverse = cs.Inverse();
+            }
+
+            Utils.Log(string.Format("{0}", cs));
+
+            Utils.Log(string.Format("RevitUtils.DocumentTotalTransformInverse completed.", ""));
+
+            return cs;
+        }
+
 
         /// <summary>
         /// Extracts the location paramaters by category.
@@ -806,11 +854,6 @@ namespace CivilConnection
                     foreach (Autodesk.Revit.DB.Face face in Autodesk.Revit.DB.HostObjectUtils.GetTopFaces((Autodesk.Revit.DB.HostObject)element.InternalElement)
                         .Select(x => element.InternalElement.GetGeometryObjectFromReference(x)).OrderBy(s => ((Autodesk.Revit.DB.Face)s).Area).ToList())
                     {
-                        //Autodesk.Revit.DB.GeometryObject go = element.InternalElement.GetGeometryObjectFromReference(r);
-
-                        //if (go is Autodesk.Revit.DB.Face)
-                        //{
-                        //Autodesk.Revit.DB.Face face = go as Autodesk.Revit.DB.Face;
 
                         foreach (Autodesk.Revit.DB.CurveLoop cl in face.GetEdgesAsCurveLoops())
                         {
@@ -819,12 +862,6 @@ namespace CivilConnection
 
                             foreach (Autodesk.Revit.DB.Curve c in cl)
                             {
-                                //if (null == lp)
-                                //{
-                                //    lp = c.GetEndPoint(0).ToPoint().Transform(RevitUtils.DocumentTotalTransform().Inverse()) as Point;
-                                //}
-
-                                //break;
                                 Point p = c.GetEndPoint(0).ToPoint().Transform(totalTransformInverse) as Point;
 
                                 try
@@ -859,80 +896,6 @@ namespace CivilConnection
                         break;  // first face
                         //}
                     }
-
-                    #region OLD CODE
-                    //if (false)
-                    //{
-                    //    if (null != lp)
-                    //    {
-                    //        double[] coordinates = featureline.GetArrayStationOffsetElevationByPoint(lp);
-                    //        double station = coordinates[0];
-                    //        double offset = coordinates[1];
-                    //        double elevation = coordinates[2];
-                    //        cs = featureline.CoordinateSystemByStation(station);
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Corridor.Name, featureline.Baseline.CorridorName);
-
-                    //        Utils.Log(string.Format("ADSK_Corridor: {0}", featureline.Baseline.CorridorName));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.BaselineIndex.Name, featureline.Baseline.Index);
-
-                    //        Utils.Log(string.Format("ADSK_BaselineIndex: {0}", featureline.Baseline.Index));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.RegionIndex.Name, featureline.BaselineRegionIndex);  // 1.1.0
-
-                    //        Utils.Log(string.Format("ADSK_RegionIndex: {0}", featureline.BaselineRegionIndex));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.RegionRelative.Name, station - featureline.Start);  // 1.1.0
-
-                    //        Utils.Log(string.Format("ADSK_RegionRelative: {0}", station - featureline.Start));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.RegionNormalized.Name, (station - featureline.Start) / (featureline.End - featureline.Start));  // 1.1.0
-
-                    //        Utils.Log(string.Format("ADSK_RegionNormalized: {0}", (station - featureline.Start) / (featureline.End - featureline.Start)));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Code.Name, featureline.Code);
-
-                    //        Utils.Log(string.Format("ADSK_Code: {0}", featureline.Code));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Side.Name, featureline.Side.ToString());
-
-                    //        Utils.Log(string.Format("ADSK_Side: {0}", featureline.Side));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.X.Name, Math.Round(lp.X, 3));
-
-                    //        Utils.Log(string.Format("ADSK_X: {0}", Math.Round(lp.X, 3)));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Y.Name, Math.Round(lp.Y, 3));
-
-                    //        Utils.Log(string.Format("ADSK_Y: {0}", Math.Round(lp.Y, 3)));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Z.Name, Math.Round(lp.Z, 3));
-
-                    //        Utils.Log(string.Format("ADSK_Z: {0}", Math.Round(lp.Z, 3)));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Station.Name, Math.Round(station, 3));
-
-                    //        Utils.Log(string.Format("ADSK_Station: {0}", Math.Round(station, 3)));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Offset.Name, Math.Round(offset, 3));
-
-                    //        Utils.Log(string.Format("ADSK_Offset: {0}", Math.Round(offset, 3)));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Elevation.Name, Math.Round(elevation, 3));
-
-                    //        Utils.Log(string.Format("ADSK_Elevation: {0}", Math.Round(elevation, 3)));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Update.Name, 1);
-
-                    //        Utils.Log(string.Format("ADSK_Update: {0}", true));
-
-                    //        element.SetParameterByName(ADSK_Parameters.Instance.Delete.Name, 0);
-
-                    //        Utils.Log(string.Format("ADSK_Delete: {0}", false));
-                    //    }
-                    //}
-                    #endregion
 
                     Utils.Log(string.Format("RevitUtils.AssignFeatureline completed.", ""));
 
@@ -1048,8 +1011,6 @@ namespace CivilConnection
                     if (element.InternalElement.Category.Id.IntegerValue.Equals((int)Autodesk.Revit.DB.BuiltInCategory.OST_StructuralColumns) ||
                             element.InternalElement.Category.Id.IntegerValue.Equals((int)Autodesk.Revit.DB.BuiltInCategory.OST_Columns))
                     {
-                        //System.Windows.Forms.MessageBox.Show("Column");
-
                         Autodesk.Revit.DB.FamilyInstance column = element.InternalElement as Autodesk.Revit.DB.FamilyInstance;
                         if (!column.IsSlantedColumn)
                         {
@@ -1187,13 +1148,6 @@ namespace CivilConnection
                     }
                 }
 
-                //lp.Dispose();
-                //lpe.Dispose();
-                //localX.Dispose();
-                //localZ.Dispose();
-                //cs.Dispose();
-                //curve.Dispose();
-
                 Utils.Log(string.Format("RevitUtils.AssignFeatureline completed.", ""));
 
                 return element;
@@ -1258,20 +1212,6 @@ namespace CivilConnection
         {
             return UtilsObjectsLocation.ReadFamilyInstanceLocationParametersForCreate(DocumentManager.Instance.CurrentDBDocument, civilDocument, data);
         }
-
-        // TODO: add the update and create for linear objects
-
-        //[MultiReturn(new string[] { "MEPCurve" })]
-        //public static Dictionary<string, object> UpdateLinearObjectLocation(CivilDocument civilDocument, object[][] data)
-        //{
-        //    return UtilsObjectsLocation.ReadFamilyInstanceLocationParametersForUpdate(DocumentManager.Instance.CurrentDBDocument, civilDocument, data);
-        //}
-
-        //[MultiReturn(new string[] { "FamilyType", "Mark", "Featureline", "UseBaseline", "StartStation", "StartOffset", "StartElevation", "EndStation", "EndOffset", "EndElevation" })]
-        //public static Dictionary<string, object> LinearObjectLocationParametersForCreate(CivilDocument civilDocument, object[][] data)
-        //{
-        //    return UtilsObjectsLocation.ReadFamilyInstanceLocationParametersForCreate(DocumentManager.Instance.CurrentDBDocument, civilDocument, data);
-        //}
 
         /// <summary>
         /// Creates FamilyInstances using the featurelines to define linear coordinate systems and assign the parameters for the update.
@@ -1490,7 +1430,7 @@ namespace CivilConnection
                     cs.Rotate(new double[] { 0, 0, 0 }, position.Angle);
                 }
 
-                mDoc.Save();
+                // mDoc.Save();  20200622 avoid to save when the DWG is open in read only mode
             }
 
             Utils.Log(string.Format("RevitUtils.ExportIFC completed.", ""));

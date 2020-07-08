@@ -69,7 +69,11 @@ namespace CivilConnection
                 "AeccXUiRoadway.AeccRoadwayApplication.12.0", // 2018
                 "AeccXUiRoadway.AeccRoadwayApplication.11.0", // 2017
                 "AeccXUiRoadway.AeccRoadwayApplication.10.5" // 2016
-            }; 
+            };
+
+#if C2021
+            progids = new string[] {"AeccXUiRoadway.AeccRoadwayApplication.13.3"};  // 2021
+#endif
 
             AcadApplication m_oAcadApp = System.Runtime.InteropServices.Marshal.GetActiveObject(m_sAcadProdID) as AcadApplication;
 

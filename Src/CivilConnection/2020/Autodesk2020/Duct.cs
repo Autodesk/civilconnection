@@ -216,8 +216,6 @@ namespace CivilConnection.MEP
             var e = end.ToXyz();
             var l = level.InternalElement as Autodesk.Revit.DB.Level;
 
-            totalTransform.Dispose();
-
             Utils.Log(string.Format("Duct.ByPoints completed.", ""));
 
             return new Duct(oType, oSystemType, s, e, l);
@@ -255,19 +253,30 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+
             if (!SessionVariables.ParametersCreated)
             {
                 UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
             }
             var oType = ductType.InternalElement as Autodesk.Revit.DB.Mechanical.DuctType;
             var oSystemType = mechanicalSystemType.InternalElement as Autodesk.Revit.DB.Mechanical.MechanicalSystemType;
-            var start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var s = start.ToXyz();
-            var end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var e = end.ToXyz();
             var l = level.InternalElement as Autodesk.Revit.DB.Level;
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
+
 
             Utils.Log(string.Format("Duct.ByCurve completed.", ""));
 
@@ -289,15 +298,18 @@ namespace CivilConnection.MEP
 
             var totalTransform = RevitUtils.DocumentTotalTransform();
 
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+
             if (!SessionVariables.ParametersCreated)
             {
                 UtilsObjectsLocation.CheckParameters(DocumentManager.Instance.CurrentDBDocument); 
             }
             var oType = ductType.InternalElement as Autodesk.Revit.DB.Mechanical.DuctType;
             var oSystemType = mechanicalSystemType.InternalElement as Autodesk.Revit.DB.Mechanical.MechanicalSystemType;
-            var start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            start = curve.StartPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var s = start.ToXyz();
-            var end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+            end = curve.EndPoint.Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
             var e = end.ToXyz();
             var l = level.InternalElement as Autodesk.Revit.DB.Level;
 
@@ -334,7 +346,14 @@ namespace CivilConnection.MEP
             pipe.SetParameterByName(ADSK_Parameters.Instance.EndRegionRelative.Name, endStation - featureline.Start);  // 1.1.0
             pipe.SetParameterByName(ADSK_Parameters.Instance.EndRegionNormalized.Name, (endStation - featureline.Start) / (featureline.End - featureline.Start));  // 1.1.0
 
-            totalTransform.Dispose();
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
 
             Utils.Log(string.Format("Duct.ByCurveFeatureline completed.", ""));
 
@@ -389,11 +408,19 @@ namespace CivilConnection.MEP
 
             TransactionManager.Instance.EnsureInTransaction(DocumentManager.Instance.CurrentDBDocument);
 
+            Autodesk.DesignScript.Geometry.Point start = null;
+            Autodesk.DesignScript.Geometry.Point end = null;
+
+            Autodesk.DesignScript.Geometry.Point sp = null;
+            Autodesk.DesignScript.Geometry.Point ep = null;
+            Autodesk.DesignScript.Geometry.Curve curve = null;
+
+
             for (int i = 0; i < points.Count - 1; ++i)
             {
-                Autodesk.DesignScript.Geometry.Point start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                start = points[i].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var s = start.ToXyz();
-                Autodesk.DesignScript.Geometry.Point end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
+                end = points[i + 1].Transform(totalTransform) as Autodesk.DesignScript.Geometry.Point;
                 var e = end.ToXyz();
 
                 Autodesk.Revit.DB.Mechanical.Duct p = Autodesk.Revit.DB.Mechanical.Duct.CreatePlaceholder(DocumentManager.Instance.CurrentDBDocument, oSystemType.Id, oType.Id, l.Id, s, e);
@@ -410,9 +437,9 @@ namespace CivilConnection.MEP
 
             foreach (Duct pipe in ducts)
             {
-                var curve = pipe.Location.Transform(totalTransformInverse) as Autodesk.DesignScript.Geometry.Curve;
-                var sp = curve.StartPoint;
-                var ep = curve.EndPoint;
+                curve = pipe.Location.Transform(totalTransformInverse) as Autodesk.DesignScript.Geometry.Curve;
+                sp = curve.StartPoint;
+                ep = curve.EndPoint;
 
                 pipe.SetParameterByName(ADSK_Parameters.Instance.Corridor.Name, featureline.Baseline.CorridorName);
                 pipe.SetParameterByName(ADSK_Parameters.Instance.BaselineIndex.Name, featureline.Baseline.Index);
@@ -447,9 +474,39 @@ namespace CivilConnection.MEP
                 fittings.Add(fitting);
             }
 
-            totalTransform.Dispose();
-
             totalTransformInverse.Dispose();
+
+            if (start != null)
+            {
+                start.Dispose();
+            }
+            if (end != null)
+            {
+                end.Dispose();
+            }
+            if (sp != null)
+            {
+                sp.Dispose();
+            }
+            if (ep != null)
+            {
+                ep.Dispose();
+            }
+
+            if (curve != null)
+            {
+                curve.Dispose();
+            }
+
+            foreach (var item in points)
+            {
+                if (item != null)
+                {
+                    item.Dispose();
+                }
+            }
+
+            points.Clear();
 
             Utils.Log(string.Format("Duct.ByPolyCurve completed.", ""));
 

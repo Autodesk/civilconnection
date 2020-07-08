@@ -187,8 +187,6 @@ namespace CivilConnection
 
                     IList<IList<AppliedSubassemblyShape>> a_list = new List<IList<AppliedSubassemblyShape>>();
 
-                    // int subCounter = 0;
-
                     var coll = a.AppliedSubassemblies.Cast<AeccAppliedSubassembly>().GroupBy(x => x.SubassemblyDbEntity.Handle);
 
                     foreach (var group in coll)
@@ -215,19 +213,15 @@ namespace CivilConnection
 
                                 string name = string.Join("_", this._baseline.CorridorName, this._baseline.Index, this.Index, this._assembly, subname, handle, counter);  // verify the names
 
-                                IList<Curve> curves = new List<Curve>();
 
                                 IList<Point> pts = new List<Point>();  // 20190413
 
                                 foreach (AeccCalculatedLink cl in cs.CalculatedLinks)
                                 {
-                                    //Utils.Log(string.Format("CalculatedLink started...", ""));
 
-                                    // IList<Point> pts = new List<Point>();
 
                                     foreach (AeccCalculatedPoint cp in cl.CalculatedPoints)
                                     {
-                                        //Utils.Log(string.Format("CalculatedPoint started...", ""));
 
                                         var soe = cp.GetStationOffsetElevationToBaseline();
 
@@ -240,10 +234,8 @@ namespace CivilConnection
                                             pts.Add(p);
                                         }
 
-                                        //Utils.Log(string.Format("CalculatedPoint completed.", ""));
                                     }
 
-                                    //Utils.Log(string.Format("CalculatedLink completed.", ""));
                                 }
 
                                 PolyCurve pro = null;
@@ -266,12 +258,18 @@ namespace CivilConnection
                                     ++counter;
                                 }
 
+                                foreach (var item in pts)
+                                {
+                                    if(item != null)
+                                    {
+                                        item.Dispose();
+                                    }
+                                }
+
                                 Utils.Log(string.Format("CalculatedShape completed.", ""));
                             }
 
                             a_list.Add(s_list);
-
-                            // ++subCounter;
 
                             Utils.Log(string.Format("AppliedSubassembly completed.", ""));
                         }
@@ -285,8 +283,6 @@ namespace CivilConnection
 
                     Utils.Log(string.Format("AssemblyGroup completed.", ""));
                 }
-
-                //return _shapes.Select(a => a.Select(s => s.Select(sh => sh.Geometry).ToList()).ToList()).ToList();
 
                 Utils.Log(string.Format("BaselineRegion.Shapes completed.", ""));
 
@@ -344,26 +340,19 @@ namespace CivilConnection
                     foreach (XmlElement corridor in xmlDoc.GetElementsByTagName("Corridor").Cast<XmlElement>().First(x => x.Attributes["Name"].Value == this._baseline.CorridorName))
                     {
 
-                        //Utils.Log("Processing Corridor...");
-
                         foreach (XmlElement baseline in corridor.GetElementsByTagName("Baseline"))
                         {
 
-                            //Utils.Log("Processing Baseline...");
 
                             IList<IList<AppliedSubassemblyShape>> baselineShapes = new List<IList<AppliedSubassemblyShape>>();
 
                             foreach (XmlElement region in baseline.GetElementsByTagName("Region"))
                             {
 
-                                //Utils.Log("Processing Region...");
-
                                 IList<AppliedSubassemblyShape> regionShapes = new List<AppliedSubassemblyShape>();
 
                                 foreach (XmlElement shape in region.GetElementsByTagName("Shape"))
                                 {
-
-                                    //Utils.Log("Processing Shape...");
 
                                     IList<Point> points = new List<Point>();
 
@@ -427,15 +416,11 @@ namespace CivilConnection
                                         }
                                     }
 
-                                    //Utils.Log(string.Format("Codes acquired: {0}", string.Join(", ", codes)));
-
                                     points = Point.PruneDuplicates(points);
 
                                     if (points.Count > 2)  // 20190715
                                     {
                                         PolyCurve pc = PolyCurve.ByPoints(points, true);
-
-                                        //Utils.Log("Polycurve created...");
 
                                         AppliedSubassemblyShape appSubShape = null;
 
@@ -450,14 +435,20 @@ namespace CivilConnection
 
                                         if (appSubShape != null)
                                         {
-                                            //Utils.Log("AppliedSubassemblyShape added.");
-
                                             regionShapes.Add(appSubShape);
                                         }
                                     }
                                     else
                                     {
                                         string.Format("ERROR: Not enough points to make a closed loop: {0} {1}", name, station);
+                                    }
+
+                                    foreach (var item in points)
+                                    {
+                                        if (item != null)
+                                        {
+                                            item.Dispose();
+                                        }
                                     }
                                 }
 
@@ -504,8 +495,6 @@ namespace CivilConnection
                     double station = Math.Round(stations[stationCounter], 5);
 
                     IList<IList<AppliedSubassemblyLink>> a_list = new List<IList<AppliedSubassemblyLink>>();
-
-                    // int subCounter = 0;
 
                     var coll = a.AppliedSubassemblies.Cast<AeccAppliedSubassembly>().GroupBy(x => x.SubassemblyDbEntity.Handle);
 
@@ -562,11 +551,18 @@ namespace CivilConnection
                                         ++counter;
                                     }
                                 }
+
+                                foreach (var item in pts)
+                                {
+                                    if (item != null)
+                                    {
+                                        item.Dispose();
+                                    }
+                                }
                             }
 
                             a_list.Add(s_list);
 
-                            // ++subCounter;
                         }
                     }
 
@@ -574,8 +570,6 @@ namespace CivilConnection
 
                     ++stationCounter;
                 }
-
-                //return _links.Select(a => a.Select(s => s.Select(l => l.Geometry).ToList()).ToList()).ToList();
 
                 Utils.Log(string.Format("BaselineRegion.Links completed.", ""));
 
@@ -732,6 +726,14 @@ namespace CivilConnection
                                     {
                                         Utils.Log(string.Format("ERROR: Not enough points", ""));
                                     }
+
+                                    foreach (var item in points)
+                                    {
+                                        if(item != null)
+                                        {
+                                            item.Dispose();
+                                        }
+                                    }
                                 }
 
                                 baselineLinks.Add(regionLinks);
@@ -779,8 +781,6 @@ namespace CivilConnection
                 Utils.Log(string.Format("ERROR: Assembly Name Failed\t{0}", ex.Message));
 
                 this._assembly = this._index.ToString();
-
-                //throw new Exception("Assembly Name Failed\n\n" + ex.Message);
             }
 
             try
@@ -816,37 +816,6 @@ namespace CivilConnection
 
                 throw new Exception("Sorted Stations Failed\n\n" + ex.Message);
             }
-
-            #region OLDCODE
-            //foreach (AeccAppliedAssembly a in blr.AppliedAssemblies)
-            //{
-            //    try
-            //    {
-            //        this._appliedAssemblies.Add(new AppliedAssembly(this, a, a.Corridor));  // TODO: verify why this is a list instead of a single applied assembly...
-            //        // break;
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        throw new Exception("Applied Assemblies Failed\n\n" + ex.Message);
-            //    }
-            //}
-
-            //foreach (AppliedAssembly aa in this._appliedAssemblies)
-            //{
-            //    foreach (AeccAppliedSubassembly asa in aa._appliedSubassemblies)
-            //    {
-            //        try
-            //        {
-            //            this.Subassemblies.Add(new Subassembly(asa.SubassemblyDbEntity, asa.Corridor));
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            this.Subassemblies.Add(null);
-            //            throw new Exception("Applied Subassemblies Failed\n\n" + ex.Message);
-            //        }
-            //    }
-            //}
-            #endregion
         }
 
         #endregion

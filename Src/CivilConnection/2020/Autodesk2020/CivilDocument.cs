@@ -174,6 +174,14 @@ namespace CivilConnection
 
                             output.Add(new LandFeatureline(f, pc, style));
                         }
+
+                        foreach (var item in points)
+                        {
+                            if (item != null)
+                            {
+                                item.Dispose();
+                            }
+                        }
                     }
                 }
 
@@ -228,6 +236,14 @@ namespace CivilConnection
             foreach (AeccAlignment a in this._alignments)
             {
                 output.Add(new Alignment(a));
+            }
+
+            foreach (AeccSite site in this._document.Sites)
+            {
+                foreach (AeccAlignment a in site.Alignments)
+                {
+                    output.Add(new Alignment(a));
+                }
             }
 
             Utils.Log(string.Format("CivilDocument.GetAlignments completed.", ""));
