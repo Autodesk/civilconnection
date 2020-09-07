@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ReferencePath>C:\Program Files\Autodesk\AutoCAD 2020\C3D\;C:\Program Files\Autodesk\AutoCAD 2020\;C:\Program Files\Autodesk\AutoCAD 2020\ACA\;C:\Program Files\Autodesk\Revit 2020\;C:\Program Files\Autodesk\Revit 2020\AddIns\DynamoForRevit\;C:\Program Files\Autodesk\Revit 2020\AddIns\DynamoForRevit\Revit\</ReferencePath>
+  </PropertyGroup>
+</Project>

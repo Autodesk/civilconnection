@@ -1,0 +1,8 @@
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\bin\2021\pkg2021.json
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\bin\2021\pkg2020.json
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\bin\2021\Autodesk2021.xml
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\bin\2021\Autodesk2021.dll
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\bin\2021\System.Net.Http.dll
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\obj\2021\Autodesk2020.csproj.CoreCompileInputs.cache
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\obj\2021\Autodesk2020.csproj.CopyComplete
+C:\Users\BDM\Documents\GitHub\civilconnection\Src\CivilConnection\2020\Autodesk2020\obj\2021\Autodesk2021.dll
