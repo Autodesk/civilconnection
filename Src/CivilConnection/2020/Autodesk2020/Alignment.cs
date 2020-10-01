@@ -251,127 +251,240 @@ namespace CivilConnection
         /// <remarks>The tool returns only lines and arcs.</remarks>
         public IList<Curve> GetCurves(double tessellation = 1)
         {
-            Utils.Log("Alignment.GetCurves Started...");
+            Utils.Log(string.Format("Alignment.GetCurves {0} Started...", this.Name));
 
             IList<Curve> output = new List<Curve>();
 
-            var entities = new List<AeccAlignmentEntity>();
-
-            var first = this._entities.FirstEntity;
-            var last = this._entities.LastEntity;
-            var ce = this._entities.Item(first);
-
-            for (int c = 0; c < this._entities.Count; ++c)
+            if (this._entities == null)
             {
-                ce = this._entities.Item(c);
+                Utils.Log(string.Format("ERROR: Alignment Entities are null", ""));
 
-                if (ce.Type != AeccAlignmentEntityType.aeccArc && ce.Type != AeccAlignmentEntityType.aeccTangent)
+                var stations = this.GeometryStations.ToList();
+                stations.AddRange(this.PIStations.ToList());
+                stations.AddRange(this.SuperTransStations.ToList());
+
+                stations.Sort();
+
+                var pts = new List<Point>();
+
+                foreach (var s in stations)
                 {
-                    for (int i = 0; i < ce.SubEntityCount; ++i)
-                    {
-                        entities.Add(ce.SubEntity(i));
-                    }
+                    pts.Add(this.PointByStationOffsetElevation(s));
                 }
-                else
-                {
-                    entities.Add(ce);
-                }
+
+                pts = Point.PruneDuplicates(pts).ToList();
+
+                output.Add(PolyCurve.ByPoints(pts));
+
+                return output;
             }
 
-            //Utils.Log(string.Format("Entities: {0}", entities.Count));
+            Utils.Log(string.Format("Total Entities: {0}", this._entities.Count));
 
-            foreach (AeccAlignmentEntity e in entities)
+            try
             {
-                switch (e.Type)
+                var entities = new List<AeccAlignmentEntity>();
+
+                for (int c = 0; c < this._entities.Count; ++c)
                 {
-                    case AeccAlignmentEntityType.aeccTangent:
+                    try
+                    {
+                        var ce = this._entities.Item(c);
+
+                        Utils.Log(string.Format("Entity: {0}", ce.Type));
+
+                        if (ce.Type != AeccAlignmentEntityType.aeccArc && ce.Type != AeccAlignmentEntityType.aeccTangent)
                         {
-                            AeccAlignmentTangent a = e as AeccAlignmentTangent;
+                            int count = ce.SubEntityCount;
 
-                            var start = Point.ByCoordinates(a.StartEasting, a.StartNorthing);
-                            var end = Point.ByCoordinates(a.EndEasting, a.EndNorthing);
-
-                            output.Add(Line.ByStartPointEndPoint(start, end));
-
-                            start.Dispose();
-                            end.Dispose();
-
-                            break;
-                        }
-                    case AeccAlignmentEntityType.aeccArc:
-                        {
-                            AeccAlignmentArc a = e as AeccAlignmentArc;
-
-                            Point center = Point.ByCoordinates(a.CenterEasting, a.CenterNorthing);
-                            Point start = Point.ByCoordinates(a.StartEasting, a.StartNorthing);
-                            Point end = Point.ByCoordinates(a.EndEasting, a.EndNorthing);
-
-                            Arc arc = null;
-                            if (!a.Clockwise)
+                            if (count > 0)
                             {
-                                arc = Arc.ByCenterPointStartPointEndPoint(center, start, end);
+                                for (int i = 0; i < ce.SubEntityCount; ++i)
+                                {
+                                    try
+                                    {
+                                        var se = ce.SubEntity(i);
+
+                                        Utils.Log(string.Format("SubEntity: {0}", se.Type));
+
+                                        entities.Add(se);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Utils.Log(string.Format("ERROR1: {0} {1}", ex.Message, ex.StackTrace));
+                                    }
+                                }
                             }
                             else
                             {
-                                arc = Arc.ByCenterPointStartPointEndPoint(center, end, start);
+                                entities.Add(ce);
                             }
-
-                            output.Add(arc);
-
-                            center.Dispose();
-                            start.Dispose();
-                            end.Dispose();
-
-                            break;
                         }
-                    default:
+                        else
                         {
-                            AeccAlignmentCurve a = e as AeccAlignmentCurve;
-
-                            var pts = new List<Point>();
-
-                            double start = a.StartingStation;
-                            double end = a.EndingStation;
-
-                            double length = a.Length;
-
-                            int subs = Convert.ToInt32(Math.Ceiling(length / tessellation));
-
-                            if (subs < 10)
-                            {
-                                subs = 10;
-                            }
-
-                            double delta = length / subs;
-
-                            for (int i = 0; i < subs + 1; ++i)
-                            {
-                                double x = 0;
-                                double y = 0;
-
-                                this._alignment.PointLocation(start + i * delta, 0, out x, out y);
-
-                                pts.Add(Point.ByCoordinates(x, y));
-                            }
-
-                            // Create spiral at 0,0
-                            NurbsCurve spiral = NurbsCurve.ByPoints(pts);  // Degree by default is 3
-
-                            output.Add(spiral);
-
-                            foreach (var pt in pts)
-                            {
-                                if (pts != null)
-                                {
-                                    pt.Dispose();
-                                }
-                            }
-
-                            pts.Clear();
-
-                            break;
+                            entities.Add(ce);
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log(string.Format("ERROR2: {0} {1}", ex.Message, ex.StackTrace));
+                    }
                 }
+
+                Utils.Log(string.Format("Missing Entities: {0}", this._entities.Count - entities.Count));
+
+                foreach (AeccAlignmentEntity e in entities)
+                {
+                    try
+                    {
+                        switch (e.Type)
+                        {
+                            case AeccAlignmentEntityType.aeccTangent:
+                                {
+                                    //Utils.Log(string.Format("Tangent..", ""));
+
+                                    AeccAlignmentTangent a = e as AeccAlignmentTangent;
+
+                                    var start = Point.ByCoordinates(a.StartEasting, a.StartNorthing);
+                                    var end = Point.ByCoordinates(a.EndEasting, a.EndNorthing);
+
+                                    output.Add(Line.ByStartPointEndPoint(start, end));
+
+                                    start.Dispose();
+                                    end.Dispose();
+
+                                    //Utils.Log(string.Format("OK", ""));
+
+                                    break;
+                                }
+                            case AeccAlignmentEntityType.aeccArc:
+                                {
+                                    //Utils.Log(string.Format("Arc..", ""));
+
+                                    AeccAlignmentArc a = e as AeccAlignmentArc;
+
+                                    Point center = Point.ByCoordinates(a.CenterEasting, a.CenterNorthing);
+                                    Point start = Point.ByCoordinates(a.StartEasting, a.StartNorthing);
+                                    Point end = Point.ByCoordinates(a.EndEasting, a.EndNorthing);
+
+                                    Arc arc = null;
+                                    if (!a.Clockwise)
+                                    {
+                                        arc = Arc.ByCenterPointStartPointEndPoint(center, start, end);
+                                    }
+                                    else
+                                    {
+                                        arc = Arc.ByCenterPointStartPointEndPoint(center, end, start);
+                                    }
+
+                                    output.Add(arc);
+
+                                    center.Dispose();
+                                    start.Dispose();
+                                    end.Dispose();
+
+                                    //Utils.Log(string.Format("OK", ""));
+
+                                    break;
+                                }
+                            default:
+                                {
+                                    //Utils.Log(string.Format("Curve...", ""));
+                                    try
+                                    {
+                                        AeccAlignmentCurve a = e as AeccAlignmentCurve;
+
+                                        var pts = new List<Point>();
+
+                                        double start = this.Start;
+
+                                        try
+                                        {
+                                            start = a.StartingStation;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR11: {0} {1}", ex.Message, ex.StackTrace));
+
+                                            break;
+                                        }
+
+                                        //Utils.Log(string.Format("start: {0}", start));
+
+                                        double length = a.Length;
+
+                                        //Utils.Log(string.Format("length: {0}", length));
+
+                                        int subs = Convert.ToInt32(Math.Ceiling(length / tessellation));
+
+                                        if (subs < 10)
+                                        {
+                                            subs = 10;
+                                        }
+
+                                        double delta = length / subs;
+
+                                        for (int i = 0; i < subs + 1; ++i)
+                                        {
+                                            try
+                                            {
+                                                double x = 0;
+                                                double y = 0;
+
+                                                this._alignment.PointLocation(start + i * delta, 0, out x, out y);
+
+                                                pts.Add(Point.ByCoordinates(x, y));
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Utils.Log(string.Format("ERROR21: {2} {0} {1}", ex.Message, ex.StackTrace, start + i * delta));
+                                            }
+                                        }
+
+                                        //Utils.Log(string.Format("Points: {0}", pts.Count));
+
+                                        if (pts.Count < 2)
+                                        {
+                                            Utils.Log(string.Format("ERROR211: not enough points to create a spiral", ""));
+                                            break;
+                                        }
+
+                                        NurbsCurve spiral = NurbsCurve.ByPoints(pts);  // Degree by default is 3
+
+                                        output.Add(spiral);
+
+                                        foreach (var pt in pts)
+                                        {
+                                            if (pts != null)
+                                            {
+                                                pt.Dispose();
+                                            }
+                                        }
+
+                                        pts.Clear();
+
+                                        //Utils.Log(string.Format("OK", ""));
+
+                                        //prevStation += length;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Utils.Log(string.Format("ERROR22: {0} {1}", ex.Message, ex.StackTrace));
+                                    }
+
+                                    break;
+                                }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log(string.Format("ERROR3: {0} {1}", ex.Message, ex.StackTrace));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Utils.Log(string.Format("ERROR4: {0} {1}", ex.Message, ex.StackTrace));
             }
 
             output = SortCurves(output);

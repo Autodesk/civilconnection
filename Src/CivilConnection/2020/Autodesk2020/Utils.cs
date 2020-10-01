@@ -1833,6 +1833,21 @@ namespace CivilConnection
         }
 
         /// <summary>
+        /// Function that writes an exception entry to the log file
+        /// </summary>
+        /// <param name="ex">The exception</param>
+        [IsVisibleInDynamoLibrary(false)]
+        public static void Log(Exception ex)
+        {
+            string path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CivilConnection_temp.log");
+
+            using (StreamWriter sw = new StreamWriter(path, true))
+            {
+                sw.WriteLine(string.Format("[{0}] EXCEPTION: {1} {2}", DateTime.Now, ex.Message, ex.StackTrace));
+            }
+        }
+
+        /// <summary>
         /// Finalizes the Log file.
         /// </summary>
         [IsVisibleInDynamoLibrary(false)]
