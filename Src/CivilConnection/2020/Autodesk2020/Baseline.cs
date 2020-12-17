@@ -391,7 +391,9 @@ namespace CivilConnection
 
                                         // 20200621 - START
 
-                                        points.Add(Point.ByCoordinates(x, y, z));
+                                        var flpt = Point.ByCoordinates(x, y, z);  // 20201217 - START
+
+                                        points.Add(flpt);
 
                                         if (isBreak > 0)
                                         {

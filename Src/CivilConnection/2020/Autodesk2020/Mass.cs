@@ -813,9 +813,7 @@ namespace CivilConnection
 
             var famName = string.Format("{0}.rfa", name);
 
-            
             string famPath = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), famName);  // Revit 2020 changed the path to the temp at a session level
-
 
             Autodesk.Revit.ApplicationServices.Application app = DocumentManager.Instance.CurrentUIApplication.Application;
 

@@ -92,6 +92,11 @@ namespace CivilConnection
         /// The Feautreline points
         /// </summary>
         IList<Point> _points = new List<Point>();
+
+        /// <summary>
+        /// The station - Point map
+        /// </summary>
+        Dictionary<double, Point> _pointmap = new Dictionary<double, Point>();
         #endregion
 
         #region PUBLIC PROPERTIES
@@ -188,7 +193,8 @@ namespace CivilConnection
         /// <param name="code">The code.</param>
         /// <param name="side">The side.</param>
         /// <param name="regionIndex">The region index</param>
-        internal Featureline(Baseline baseline, PolyCurve polycurve, string code, SideType side, int regionIndex = 0)
+        /// <param name="pointMap">The station - Point map for the Featureline</param>
+        internal Featureline(Baseline baseline, PolyCurve polycurve, string code, SideType side, int regionIndex = 0, Dictionary<double, Point> pointMap = null)
         {
             this._baseline = baseline;
             this._polycurve = polycurve;
@@ -204,6 +210,11 @@ namespace CivilConnection
             baseline._baseline.Alignment.StationOffset(polycurve.EndPoint.X, polycurve.EndPoint.Y, out endStation, out endOffset);
             this._start = startStation;
             this._end = endStation;
+
+            if (pointMap != null)
+            {
+                this._pointmap = pointMap;
+            }
 
             // 20190524 -- End
         }
@@ -679,8 +690,9 @@ namespace CivilConnection
         {
             Utils.Log(string.Format("Featureline.GetPolyCurveByStationsOffsetElevation started...", ""));
 
-            if (startStation == endStation)
+            if (Math.Abs(startStation - endStation) < 0.00001)
             {
+                Utils.Log(string.Format("ERROR: start and end station are coincident", ""));
                 return null;
             }
 
@@ -703,6 +715,8 @@ namespace CivilConnection
                 endStation = eStation;
             }
 
+            //Utils.Log(string.Format("Stations are ready", ""));
+
             IList<double> stations = new List<double>() { startStation };
 
             foreach (double s in this.Baseline.Stations.Where(s => s >= startStation && s <= endStation))
@@ -712,26 +726,31 @@ namespace CivilConnection
 
             stations.Add(endStation);
 
+            //Utils.Log(string.Format("Station List created", ""));
+
             Point p = Point.ByCoordinates(offset, 0, elevation);
 
             IList<Point> points = new List<Point>();
 
             CoordinateSystem cs = null;
 
-            foreach (double s in stations)
+            foreach (double s in stations.OrderBy(x => x))  // 20201217
             {
-                cs = this.CoordinateSystemByStation(s);
-                points.Add(p.Transform(cs) as Point);
+                try
+                {
+                    points.Add(PointByStationOffsetElevation(s, offset, elevation, false));
+                    //cs = this.CoordinateSystemByStation(s);
+                    //points.Add(p.Transform(cs) as Point);
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log(string.Format("EXCEPTION: {0}\n{1}", ex.Message, ex.StackTrace));
+                }
             }
 
-            p.Dispose();
+            points = Point.PruneDuplicates(points).ToList();
 
-            if (cs != null)
-            {
-                cs.Dispose();
-            }
-
-            points = Point.PruneDuplicates(points);
+            //Utils.Log(string.Format("Station List created", ""));
 
             PolyCurve res = null;
 
@@ -749,6 +768,13 @@ namespace CivilConnection
             }
 
             points.Clear();
+
+            if (cs != null)
+            {
+                cs.Dispose();
+            }
+
+            p.Dispose();
 
             Utils.Log(string.Format("Featureline.GetPolyCurveByStationsOffsetElevation completed.", ""));
 

@@ -360,14 +360,45 @@ namespace CivilConnection
 
                                 IList<string> codes = new List<string>();
 
-                                foreach (XmlElement c in shape.GetElementsByTagName("Code"))
+                                // 20201025 - START
+
+                                var xml_codes = shape.GetElementsByTagName("Codes");
+
+                                if (xml_codes != null)
                                 {
-                                    string code = c.Attributes["Name"].Value;
-                                    if (!codes.Contains(code))
+                                    var xml_code = shape.GetElementsByTagName("Code");
+
+                                    if (xml_code != null)
                                     {
-                                        codes.Add(code);
+                                        foreach (XmlElement c in xml_code)
+                                        {
+                                            string code = c.Attributes["Name"].Value;
+                                            if (!codes.Contains(code))
+                                            {
+                                                codes.Add(code);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        codes.Add("_NoCode_");
                                     }
                                 }
+                                else
+                                {
+                                    codes.Add("_NoCodes_");
+                                }
+
+                                //foreach (XmlElement c in shape.GetElementsByTagName("Code"))
+                                //{
+                                //    string code = c.Attributes["Name"].Value;
+                                //    if (!codes.Contains(code))
+                                //    {
+                                //        codes.Add(code);
+                                //    }
+                                //}
+
+                                // 20201025 - END
 
                                 points = Point.PruneDuplicates(points);
 
@@ -466,68 +497,117 @@ namespace CivilConnection
 
                             foreach (XmlElement link in region.GetElementsByTagName("Link"))
                             {
-                                IList<Point> points = new List<Point>();
+                                //Utils.Log($"Processing Link...");
 
-                                string corrName = link.Attributes["Corridor"].Value;
-                                string baselineIndex = link.Attributes["BaselineIndex"].Value;
-                                string regionIndex = link.Attributes["RegionIndex"].Value;
-                                string assembly = link.Attributes["AssemblyName"].Value;
-                                string subassembly = link.Attributes["SubassemblyName"].Value;
-                                string handle = link.Attributes["Handle"].Value;
-                                string index = link.Attributes["LinkIndex"].Value;
-                                double station = Convert.ToDouble(link.Attributes["Station"].Value, CultureInfo.InvariantCulture);
-
-                                string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
-
-                                foreach (XmlElement p in link.GetElementsByTagName("Point"))
+                                try
                                 {
-                                    double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
-                                    double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
-                                    double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
+                                    IList<Point> points = new List<Point>();
 
-                                    points.Add(Point.ByCoordinates(x, y, z));
-                                }
+                                    string corrName = link.Attributes["Corridor"].Value;
+                                    string baselineIndex = link.Attributes["BaselineIndex"].Value;
+                                    string regionIndex = link.Attributes["RegionIndex"].Value;
+                                    string assembly = link.Attributes["AssemblyName"].Value;
+                                    string subassembly = link.Attributes["SubassemblyName"].Value;
+                                    string handle = link.Attributes["Handle"].Value;
+                                    string index = link.Attributes["LinkIndex"].Value;
+                                    double station = Convert.ToDouble(link.Attributes["Station"].Value, CultureInfo.InvariantCulture);
 
-                                IList<string> codes = new List<string>();
+                                    string name = string.Join("_", corrName, baselineIndex, regionIndex, assembly, subassembly, handle, index);
 
-                                foreach (XmlElement c in link.GetElementsByTagName("Code"))
-                                {
-                                    string code = c.Attributes["Name"].Value;
-                                    if (!codes.Contains(code))
+                                    //Utils.Log($"Name: {name}");
+
+                                    foreach (XmlElement p in link.GetElementsByTagName("Point"))
                                     {
-                                        codes.Add(code);
-                                    }
-                                }
+                                        double x = Convert.ToDouble(p.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                                        double y = Convert.ToDouble(p.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                                        double z = Convert.ToDouble(p.Attributes["Z"].Value, CultureInfo.InvariantCulture);
 
-                                points = Point.PruneDuplicates(points);
-
-                                if (points.Count > 2)
-                                {
-                                    PolyCurve pc = PolyCurve.ByPoints(points);
-
-                                    AppliedSubassemblyLink appSubLink = null;
-
-                                    try
-                                    {
-                                        appSubLink = new AppliedSubassemblyLink(name, pc, codes, station);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Utils.Log(string.Format("ERROR: {0} {1} {2}", name, station, ex.Message));
+                                        points.Add(Point.ByCoordinates(x, y, z));
                                     }
 
-                                    if (appSubLink != null)
+                                    points = Point.PruneDuplicates(points);
+
+                                    //Utils.Log($"Points: {points.Count}");
+
+                                    IList<string> codes = new List<string>();
+
+                                    // 20201025 - START
+
+                                    var xml_codes = link.GetElementsByTagName("Codes");
+
+                                    if (xml_codes != null)
                                     {
-                                        regionLinks.Add(appSubLink);
+                                        var xml_code = link.GetElementsByTagName("Code");
+
+                                        if (xml_code != null)
+                                        {
+                                            foreach (XmlElement c in xml_code)
+                                            {
+                                                string code = c.Attributes["Name"].Value;
+                                                if (!codes.Contains(code))
+                                                {
+                                                    codes.Add(code);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            codes.Add("_NoCode_");
+                                        }
                                     }
                                     else
                                     {
-                                        Utils.Log(string.Format("ERROR: The AppliedSubassemblyLink is null, Station: {0}", station));
+                                        codes.Add("_NoCodes_");
                                     }
+
+                                    //Utils.Log($"Codes: {codes}");
+
+                                    //foreach (XmlElement c in link.GetElementsByTagName("Code"))
+                                    //{
+                                    //    string code = c.Attributes["Name"].Value;
+                                    //    if (!codes.Contains(code))
+                                    //    {
+                                    //        codes.Add(code);
+                                    //    }
+                                    //}
+
+                                    // 20201025 - END
+
+
+                                    if (points.Count > 1)
+                                    {
+                                        PolyCurve pc = PolyCurve.ByPoints(points);
+
+                                        AppliedSubassemblyLink appSubLink = null;
+
+                                        try
+                                        {
+                                            appSubLink = new AppliedSubassemblyLink(name, pc, codes, station);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Utils.Log(string.Format("ERROR: {0} {1} {2}", name, station, ex.Message));
+                                        }
+
+                                        if (appSubLink != null)
+                                        {
+                                            regionLinks.Add(appSubLink);
+                                        }
+                                        else
+                                        {
+                                            Utils.Log(string.Format("ERROR: The AppliedSubassemblyLink is null, Station: {0}", station));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Utils.Log(string.Format("ERROR: Not enough points to make a link: {0} {1}", name, station));
+                                    }
+
+                                    //Utils.Log("Completed");
                                 }
-                                else
+                                catch (Exception ex)
                                 {
-                                    string.Format("ERROR: Not enough points to make a closed loop: {0} {1}", name, station);
+                                    Utils.Log(ex);
                                 }
                             }
 

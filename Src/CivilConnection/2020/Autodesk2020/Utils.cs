@@ -2766,7 +2766,6 @@ namespace CivilConnection
                         }
                     }
 
-
                     // create surfaces
                     foreach (XmlElement te in se.GetElementsByTagName("F"))
                     {

@@ -70,11 +70,11 @@
   </PropertyGroup>
   <PropertyGroup>
     <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2.3</DynCoreVersion>
-    <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.5</DynCoreVersion>
+    <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.6</DynCoreVersion>
   </PropertyGroup>
   <PropertyGroup>
     <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2.3</DynRevitVersion>
-    <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.5</DynRevitVersion>
+    <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.6</DynRevitVersion>
   </PropertyGroup>
   <PropertyGroup>
     <DynRevitPath Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">..\..\..\..\..\..\..\Revit2020\Revit 2020</DynRevitPath>
