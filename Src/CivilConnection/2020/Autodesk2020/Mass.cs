@@ -784,13 +784,15 @@ namespace CivilConnection
         /// <param name="material">The material to assign to the Revit family type.</param>
         /// <param name="isVoid">If true it will create a void that can be used to cut other Revit elements.</param>
         /// <param name="rebar">Can host rebar.</param>
+        /// <param name="mesh">If true it tries to convert the solid to a Revit mesh</param>
         /// <returns></returns>
         public static Revit.Elements.FamilyInstance BySolid(Autodesk.DesignScript.Geometry.Solid solid, 
             string name, 
             string familyTemplate, 
             Revit.Elements.Material material,
             bool isVoid = false,
-            bool rebar = true
+            bool rebar = true,
+            bool mesh = false
             )
         {
             Utils.Log(string.Format("Mass.BySolid started...", ""));
@@ -847,6 +849,15 @@ namespace CivilConnection
                     {
                         bool newFFE = true;
 
+                        TessellatedShapeBuilderTarget target = TessellatedShapeBuilderTarget.Solid;
+                        TessellatedShapeBuilderFallback fallback = TessellatedShapeBuilderFallback.Abort;
+
+                        if (mesh)
+                        {
+                            target = TessellatedShapeBuilderTarget.Mesh;
+                            fallback = TessellatedShapeBuilderFallback.Salvage;
+                        }
+
                         foreach (ElementId eid in new FilteredElementCollector(famDoc).OfClass(typeof(FreeFormElement)).ToElementIds())
                         {
                             FreeFormElement ffe = famDoc.GetElement(eid) as FreeFormElement;
@@ -883,7 +894,7 @@ namespace CivilConnection
 
                         if (newFFE)
                         {
-                            foreach (var item in solid.ToRevitType(TessellatedShapeBuilderTarget.Solid, TessellatedShapeBuilderFallback.Abort, material.InternalElement.Id))
+                            foreach (var item in solid.ToRevitType(target, fallback, material.InternalElement.Id))
                             {
                                 // For all the solids
 
