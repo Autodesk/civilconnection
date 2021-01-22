@@ -465,7 +465,7 @@ namespace CivilConnection
                 {
                     Utils.Log(string.Format("One Solid to process...", ""));
 
-                   FreeFormElement.Create(famDoc, s);
+                    FreeFormElement.Create(famDoc, s);
 
                     Utils.Log(string.Format("Free Form Element Created!", ""));
                 }
@@ -786,9 +786,9 @@ namespace CivilConnection
         /// <param name="rebar">Can host rebar.</param>
         /// <param name="mesh">If true it tries to convert the solid to a Revit mesh</param>
         /// <returns></returns>
-        public static Revit.Elements.FamilyInstance BySolid(Autodesk.DesignScript.Geometry.Solid solid, 
-            string name, 
-            string familyTemplate, 
+        public static Revit.Elements.FamilyInstance BySolid(Autodesk.DesignScript.Geometry.Solid solid,
+            string name,
+            string familyTemplate,
             Revit.Elements.Material material,
             bool isVoid = false,
             bool rebar = true,
@@ -864,7 +864,7 @@ namespace CivilConnection
 
                             if (ffe != null)
                             {
-                                foreach (var item in solid.ToRevitType(TessellatedShapeBuilderTarget.Solid, TessellatedShapeBuilderFallback.Abort, material.InternalElement.Id))
+                                foreach (var item in solid.ToRevitType(target, fallback, material.InternalElement.Id))
                                 {
                                     if (item is Solid)
                                     {
@@ -914,20 +914,129 @@ namespace CivilConnection
 
                                     Utils.Log(string.Format("Solid created.", ""));
                                 }
-                            } 
+                            }
                         }
 
-                        if (rebar)
-                        {
-                            famDoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_CAN_HOST_REBAR).Set(1);
-                            Utils.Log(string.Format("Family can host rebar.", ""));
-                        }
+
                     }
                     catch (Exception ex)
                     {
-                        Utils.Log(string.Format("ERROR: Mass.BySolid {0}", ex.Message));
+                        Utils.Log(string.Format("ERROR: Mass.BySolid {0} {1}", ex.Message, ex.StackTrace));
 
-                        throw new Exception(string.Format("CivilConnection\nLoft Form failed\n\n{0}", ex.Message));
+                        string tempPath = Path.ChangeExtension(Path.GetTempFileName(), "sat");
+
+                        if (File.Exists(tempPath))
+                        {
+                            File.Delete(tempPath);
+                        }
+
+                        try
+                        {
+                            Autodesk.DesignScript.Geometry.Geometry.ExportToSAT(new Autodesk.DesignScript.Geometry.Geometry[] { solid }, tempPath);
+
+                            Utils.Log(string.Format("SAT exported in {0}", tempPath));
+
+                            var view = View3D.CreateIsometric(famDoc,
+                                new FilteredElementCollector(famDoc)
+                                .OfClass(typeof(ViewFamilyType))
+                                .Cast<ViewFamilyType>()
+                                .Where(x => x.ViewFamily == ViewFamily.ThreeDimensional)
+                                .First()
+                                .Id);
+
+                            Utils.Log(string.Format("View3D Created.", ""));
+
+                            ElementId iiId = famDoc.Import(tempPath,
+                                new SATImportOptions()
+                                {
+                                    Unit = ImportUnit.Default,
+                                    AutoCorrectAlmostVHLines = false,
+                                    ColorMode = ImportColorMode.Preserved,
+                                    Placement = ImportPlacement.Origin,
+                                },
+                                view);
+
+                            Utils.Log(string.Format("ImportInstance Created.", ""));
+
+                            var el = famDoc.GetElement(iiId);
+
+                            var opts = new Options();
+
+                            if (el != null)
+                            {
+                                foreach (var go in el.get_Geometry(opts))
+                                {
+                                    if (go is GeometryInstance)
+                                    {
+                                        var gi = go as GeometryInstance;
+                                        foreach (var item in gi.GetInstanceGeometry())
+                                        {
+                                            if (item is Solid)
+                                            {
+                                                Utils.Log(string.Format("Solid found...", ""));
+
+                                                Solid s = item as Solid;
+
+                                                Autodesk.Revit.DB.FreeFormElement form = FreeFormElement.Create(famDoc, s);
+
+                                                if (isVoid)
+                                                {
+                                                    form.Parameters.Cast<Autodesk.Revit.DB.Parameter>().First(x => x.Id.IntegerValue.Equals((int)BuiltInParameter.ELEMENT_IS_CUTTING)).Set(1);
+                                                    famDoc.OwnerFamily.Parameters.Cast<Autodesk.Revit.DB.Parameter>().First(x => x.Id.IntegerValue.Equals((int)BuiltInParameter.FAMILY_ALLOW_CUT_WITH_VOIDS)).Set(1);
+                                                }
+
+                                                Utils.Log(string.Format("Form Created.", ""));
+                                            }
+                                        }
+                                    }
+                                }
+                                var catId = el.Category.Id;
+
+                                Utils.Log(string.Format("Category: {0}", el.Category.Name));
+
+                                var sub = el.Category.SubCategories;
+                                var iter = sub.ForwardIterator();
+
+                                famDoc.Delete(iiId);
+
+                                var todel = new List<ElementId>();
+
+                                while (iter.MoveNext())
+                                {
+                                    var current = iter.Current as Autodesk.Revit.DB.Category;
+
+                                    if (current != null)
+                                    {
+                                        var id = current.Id;
+
+                                        if (!todel.Contains(id))
+                                        {
+                                            todel.Add(id); 
+                                        }
+                                    }
+                                }
+
+                                famDoc.Delete(todel);
+
+                                Utils.Log(string.Format("ImportInstance Deleted.", ""));
+                            }
+                            else
+                            {
+                                Utils.Log(string.Format("ERROR: ImportInstance is null", ""));
+                            }
+                        }
+                        catch (Exception ex1)
+                        {
+                            Utils.Log(string.Format("ERROR: ImportInstance {0} {1}", ex1.Message, ex1.StackTrace));
+
+                            throw new Exception(string.Format("CivilConnection\nLoft Form failed\n\n{0} {1}", ex1.Message, ex1.StackTrace));
+                        }
+                    }
+
+                    if (rebar)
+                    {
+                        famDoc.OwnerFamily.get_Parameter(BuiltInParameter.FAMILY_CAN_HOST_REBAR).Set(1);
+                        Utils.Log(string.Format("Family can host rebar.", ""));
                     }
 
                     f.Commit();
@@ -956,10 +1065,10 @@ namespace CivilConnection
         /// <param name="createForm"></param>
         /// <param name="rebar">Can host Rebar.</param>
         /// <returns></returns>
-        public static Revit.Elements.FamilyInstance ByPathCrossSections(Autodesk.DesignScript.Geometry.Point[] pathPoints, 
-            Autodesk.DesignScript.Geometry.Curve[][] crossSections, 
+        public static Revit.Elements.FamilyInstance ByPathCrossSections(Autodesk.DesignScript.Geometry.Point[] pathPoints,
+            Autodesk.DesignScript.Geometry.Curve[][] crossSections,
             string name, string familyTemplate,
-            bool append = false, 
+            bool append = false,
             bool createForm = false,
             bool rebar = true)
         {
@@ -1269,7 +1378,7 @@ namespace CivilConnection
             shapes = shapes.OrderBy(x => x.Station).ToArray();  // make sure the shapes are sorted by station
 
             shapes = shapes.GroupBy(x => Math.Round(x.Station, 8)).Select(g => g.First()).ToArray();  // make sure there are no overalpping shapes
-            
+
             #endregion
 
             #region FAMILY HOUSEKEEPING
@@ -1562,7 +1671,7 @@ namespace CivilConnection
             #endregion
 
             #region FAMILY LOADING AND PLACEMENT
-            
+
             fi = UpdateFamilyInstance(famPath, rvtFI, found);
 
             Utils.Log(string.Format("Mass.ByShapesCreaseStations completed.", ""));
@@ -1584,11 +1693,11 @@ namespace CivilConnection
         /// <param name="rebar">Can host rebar.</param>
         /// <returns></returns>
         public static Revit.Elements.Element ByClosedCurvesCreaseStations(
-            string familyTemplate, 
-            string name, 
-            Alignment alignment, 
-            Autodesk.DesignScript.Geometry.PolyCurve[] closedCurves, 
-            double[] stations = null, 
+            string familyTemplate,
+            string name,
+            Alignment alignment,
+            Autodesk.DesignScript.Geometry.PolyCurve[] closedCurves,
+            double[] stations = null,
             bool append = false,
             bool rebar = true)
         {
