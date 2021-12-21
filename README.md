@@ -26,6 +26,23 @@ Here are some features enabled by CivilPython:
 * Provides a user interface command and a command line version that can be used to select Python scripts interactively or to specify their path on the file system via CivilConnection.
 * CivilPython runs for Civil 3D 2016 onward.
 
+**IMPORTANT NOTE**
+The long term support for Python 2.7 has ended in 2020. As a policy, there cannot be new releases of tools leveraging Python 2.7, CivilPython is one of them. This means that the functionalities of CivilPython that are leverging IronPython 2.7 need to be migrated to use CPython that is based on Python 3.7. Currently, CPython does not yet offer a seamless experience and there are constructs that are not successfully recognized if compared with IronPython (e.g., it does not implement operators between objects, it forces to change syntax on existing code, etc.).
+Since nowdays it is possibel to have Dynamo for Civil 3D since release 2020, it has been decided to disable the functionalities connected to the Python scripting in CivilPython and only enbale those hidden commands that are used by CivilConnection.
+As a result, when calling "python" at the command line from Civil 3D 2022+ with the latest version of CivilPython you will get this message instead:
+
+"Congratulations! CivilConection can now be used.
+You can now close this message.
+
+NOTE: The execution of Python scripts via this command has been disabled in Civil 3D 2022.
+IronPython 2.7 longe term support has eebn discontinued.
+It is recommended to migrate your previous Python code to CPython 3.7.
+They can be used as modules in Python Script nodes in Dynamo for Civil 3D.
+Currently there are some limitations with CPython and an investigation on how to migrate CivilPython is undergioing.
+Stay tuned for more updates."
+
+If there is an olded versions of CivilPython installed on the machine it will continue to work.
+
 ## How to use
 See ./Doc/Linear Structures Workflow Guide.pdf
 
@@ -36,11 +53,12 @@ The release numbers for the package correspond to the major release numbers of C
 
 **Note that CivilConnection and Civil 3D with different release numbers are not compatible.**
 
-* Civil 3D and Revit 2017 - CivilConnection 2017 - Autodesk2017.dll [End of Life]
-* Civil 3D and Revit 2018 - CivilConnection 2018 - Autodesk2018.dll
-* Civil 3D and Revit 2019 - CivilConnection 2019 - Autodesk2019.dll
-* Civil 3D and Revit 2020 - CivilConnection 2020 - Autodesk2020.dll
+* Civil 3D and Revit 2022 - CivilConnection 2022 - Autodesk2022.dll
 * Civil 3D and Revit 2021 - CivilConnection 2021 - Autodesk2021.dll
+* Civil 3D and Revit 2020 - CivilConnection 2020 - Autodesk2020.dll
+* Civil 3D and Revit 2019 - CivilConnection 2019 - Autodesk2019.dll [End of Life]
+* Civil 3D and Revit 2018 - CivilConnection 2018 - Autodesk2018.dll [End of Life]
+* Civil 3D and Revit 2017 - CivilConnection 2017 - Autodesk2017.dll [End of Life]
 
 ## License
 See [LICENSING.md](LICENSING.md)
