@@ -41,7 +41,7 @@ They can be used as modules in Python Script nodes in Dynamo for Civil 3D.
 Currently there are some limitations with CPython and an investigation on how to migrate CivilPython is undergioing.
 Stay tuned for more updates."
 
-If there is an olded versions of CivilPython installed on the machine it will continue to work.
+If there is an older versions of CivilPython installed on the machine it will continue to work.
 
 ## How to use
 See ./Doc/Linear Structures Workflow Guide.pdf
