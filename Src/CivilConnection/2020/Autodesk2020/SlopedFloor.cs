@@ -127,18 +127,34 @@ namespace CivilConnection
 
             Autodesk.Revit.DB.Floor floor = null;
 
+            var list = new System.Collections.Generic.List<Autodesk.Revit.DB.Curve>();
+            foreach (Autodesk.Revit.DB.Curve c in curveArray)
+            {
+                list.Add(c);
+            }
+
+            var cl = CurveLoop.Create(list);
+
             if (floorType.IsFoundationSlab)
             {
                 // Foundation Slabs require that the profile curves are planar and horizontal
                 // The normal must be orthogonal to the profile, hence the only possible normal is the Z Axis
+
+#if C2022
+                floor = Floor.Create(doc, new System.Collections.Generic.List<CurveLoop>() {cl}, floorType.Id, level.Id);
+#else
                 floor = doc.Create.NewFoundationSlab(curveArray, floorType, level, structural, XYZ.BasisZ);
-             
+#endif
             }
             else
             {
+#if C2022
+                floor = Floor.Create(doc, new System.Collections.Generic.List<CurveLoop>() { cl }, floorType.Id, level.Id, structural, slopeArrow, slope);
+#else
                 // we assume the floor is not structural here, this may be a bad assumption
                 floor = doc.Create.NewSlab(curveArray, level, slopeArrow, slope, structural);
                 floor.ChangeTypeId(floorType.Id);
+#endif
             }
 
             InternalSetFloor(floor);
@@ -148,9 +164,9 @@ namespace CivilConnection
             ElementBinder.CleanupAndSetElementForTrace(doc, InternalFloor);
         }
 
-        #endregion
+#endregion
 
-        #region PUBLIC METHODS
+#region PUBLIC METHODS
 
         /// <summary>
         /// Create a Revit Floor given it's curve outline and Level
@@ -266,6 +282,6 @@ namespace CivilConnection
         }
 
 
-        #endregion
+#endregion
     }
 }

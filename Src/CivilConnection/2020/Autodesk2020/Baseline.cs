@@ -500,7 +500,7 @@ namespace CivilConnection
                                         }
                                         catch (Exception ex)
                                         {
-                                            Utils.Log(string.Format("Baseline.GetFeaturelinesFromXML Side set to Right", ""));
+                                            Utils.Log(string.Format("Baseline.GetFeaturelinesFromXML Side set to Right {0}" , ex.Message));
                                             side = 1;
                                         }
                                         output.Add(new Featureline(this, pc, code, side < 0 ? Featureline.SideType.Left : Featureline.SideType.Right, ri));
@@ -724,17 +724,24 @@ namespace CivilConnection
         [IsVisibleInDynamoLibrary(false)]
         public double[] GetArrayStationOffsetElevationByPoint(Point point)
         {
-            Utils.Log(string.Format("Baseline.GetArrayStationOffsetElevationByPoint started...", ""));
+            Utils.Log(string.Format("Baseline.GetArrayStationOffsetElevationByPoint {0} started...", point));
 
             AeccAlignment alignment = this.Alignment.InternalElement as AeccAlignment;
 
             double station = 0;
             double offset = 0;
+            double elevation = 0;
 
             alignment.StationOffset(point.X, point.Y, out station, out offset);
 
-            //double elevation = point.Z - PointByStationOffsetElevation(station, offset, 0).Z;
-            double elevation = point.Z - this._baseline.Profile.ElevationAt(station);
+            try
+            {
+                elevation = point.Z - this._baseline.Profile.ElevationAt(station);
+            }
+            catch (Exception ex)
+            {
+                Utils.Log(string.Format("EXCEPTION: {0} {1}", ex.Message, ex.StackTrace));
+            }
 
             Utils.Log(string.Format("Baseline.GetArrayStationOffsetElevationByPoint completed.", ""));
 
@@ -868,6 +875,14 @@ namespace CivilConnection
                         }
                     }
                 }
+                else
+                {
+                    Utils.Log(string.Format("ERROR: Region could not be found", ""));
+                }
+            }
+            else
+            {
+                Utils.Log(string.Format("ERROR: Featureline code is not valid", ""));
             }
 
             // 20190122 -- End

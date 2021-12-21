@@ -73,13 +73,33 @@ namespace CivilConnection
         /// </value>
         public double End { get { return _alignment.EndingStation; } }
 
+        [SupressImportIntoVM]
+        private double[] _GetGeometryStations()
+        {
+            return _alignment.GetStations(AeccStationType.aeccGeometryPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray();
+        }
+
+        [SupressImportIntoVM]
+        private double[] _GetPIStations()
+        {
+            return _alignment.GetStations(AeccStationType.aeccPIPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray();
+        }
+
+        [SupressImportIntoVM]
+        private double[] _GetSuperTransStations()
+        {
+            return _alignment.GetStations(AeccStationType.aeccSuperTransPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray();
+        }
+
+
         /// <summary>
         /// Gets the stations of the geometry points.
         /// </summary>
         /// <value>
         /// The GeometryStations.
         /// </value>
-        public double[] GeometryStations { get { return _alignment.GetStations(AeccStationType.aeccGeometryPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray(); } }
+        /// 
+        public double[] GeometryStations { get { return _GetGeometryStations(); } }
 
         /// <summary>
         /// Gets the stations of the points of intersection.
@@ -87,7 +107,8 @@ namespace CivilConnection
         /// <value>
         /// The PIStations.
         /// </value>
-        public double[] PIStations { get { return _alignment.GetStations(AeccStationType.aeccPIPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray(); } }
+        /// 
+        public double[] PIStations { get { return _GetPIStations(); } }
 
         /// <summary>
         /// Gets the stations of the points of superelevation transition.
@@ -95,7 +116,8 @@ namespace CivilConnection
         /// <value>
         /// The SuperTransStations.
         /// </value>
-        public double[] SuperTransStations { get { return _alignment.GetStations(AeccStationType.aeccSuperTransPoint, this.Start, this.End).Cast<AeccAlignmentStation>().Select(x => x.Station).ToArray(); } }
+        /// 
+        public double[] SuperTransStations { get { return _GetSuperTransStations(); } }
 
         #endregion
 
@@ -249,6 +271,7 @@ namespace CivilConnection
         /// <param name="tessellation">The length of the tessellation for spirals, by default is 1 unit.</param>
         /// <returns>A list of curves that represent the Alignment.</returns>
         /// <remarks>The tool returns only lines and arcs.</remarks>
+        /// 
         public IList<Curve> GetCurves(double tessellation = 1)
         {
             Utils.Log(string.Format("Alignment.GetCurves {0} Started...", this.Name));

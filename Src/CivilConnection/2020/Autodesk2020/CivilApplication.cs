@@ -74,6 +74,9 @@ namespace CivilConnection
 #if C2021
             progids = new string[] {"AeccXUiRoadway.AeccRoadwayApplication.13.3"};  // 2021
 #endif
+#if C2022
+            progids = new string[] {"AeccXUiRoadway.AeccRoadwayApplication.13.4"};  // 2022
+#endif
 
             AcadApplication m_oAcadApp = System.Runtime.InteropServices.Marshal.GetActiveObject(m_sAcadProdID) as AcadApplication;
 
@@ -107,6 +110,7 @@ namespace CivilConnection
         /// <summary>
         /// Creates the connection with the running session of Civil 3D.
         /// </summary>
+        /// 
         public CivilApplication()
         {
             Utils.InitializeLog();
@@ -135,7 +139,38 @@ namespace CivilConnection
 
             Utils.Log(string.Format("CivilApplication.Units started...", ""));
 
-            // 1.1.0 Change Revit Document untis to match the Civil 3D Units
+#if (C2022 || C2021)
+            // 6.0.0 Change Revit Document units to match the Civil 3D Units
+            if (du == Autodesk.AECC.Interop.Land.AeccDrawingUnitType.aeccDrawingUnitMeters)
+            {
+                units.SetFormatOptions(Autodesk.Revit.DB.SpecTypeId.Length, new Autodesk.Revit.DB.FormatOptions(Autodesk.Revit.DB.UnitTypeId.Meters));
+            }
+            else if (du == Autodesk.AECC.Interop.Land.AeccDrawingUnitType.aeccDrawingUnitDecimeters)
+            {
+                units.SetFormatOptions(Autodesk.Revit.DB.SpecTypeId.Length, new Autodesk.Revit.DB.FormatOptions(Autodesk.Revit.DB.UnitTypeId.Centimeters));
+            }
+            else if (du == Autodesk.AECC.Interop.Land.AeccDrawingUnitType.aeccDrawingUnitCentimeters)
+            {
+                units.SetFormatOptions(Autodesk.Revit.DB.SpecTypeId.Length, new Autodesk.Revit.DB.FormatOptions(Autodesk.Revit.DB.UnitTypeId.Centimeters));
+            }
+            else if (du == Autodesk.AECC.Interop.Land.AeccDrawingUnitType.aeccDrawingUnitMillimeters)
+            {
+                units.SetFormatOptions(Autodesk.Revit.DB.SpecTypeId.Length, new Autodesk.Revit.DB.FormatOptions(Autodesk.Revit.DB.UnitTypeId.Millimeters));
+            }
+            else if (du == Autodesk.AECC.Interop.Land.AeccDrawingUnitType.aeccDrawingUnitFeet)
+            {
+                units.SetFormatOptions(Autodesk.Revit.DB.SpecTypeId.Length, new Autodesk.Revit.DB.FormatOptions(Autodesk.Revit.DB.UnitTypeId.Feet));
+            }          
+            else if (du == Autodesk.AECC.Interop.Land.AeccDrawingUnitType.aeccDrawingUnitInches)
+            {
+                units.SetFormatOptions(Autodesk.Revit.DB.SpecTypeId.Length, new Autodesk.Revit.DB.FormatOptions(Autodesk.Revit.DB.UnitTypeId.Inches));
+            }
+            else
+            {
+                throw new Exception("UNITS ERROR\nThe Civil 3D units of the Active Document are not supported in Revit.\nChange the Civil 3D Units to continue");
+            }
+#else   
+            // 1.1.0 Change Revit Document units to match the Civil 3D Units
             if (du == Autodesk.AECC.Interop.Land.AeccDrawingUnitType.aeccDrawingUnitMeters)
             {
                 units.SetFormatOptions(Autodesk.Revit.DB.UnitType.UT_Length, new Autodesk.Revit.DB.FormatOptions(Autodesk.Revit.DB.DisplayUnitType.DUT_METERS));
@@ -164,7 +199,7 @@ namespace CivilConnection
             {
                 throw new Exception("UNITS ERROR\nThe Civil 3D units of the Active Document are not supported in Revit.\nChange the Civil 3D Units to continue");
             }
-
+#endif
             revitDoc.SetUnits(units);
 
             RevitServices.Transactions.TransactionManager.Instance.TransactionTaskDone();

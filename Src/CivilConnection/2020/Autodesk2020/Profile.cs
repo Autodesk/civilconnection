@@ -159,6 +159,8 @@ namespace CivilConnection
 
         //TODO: Get profile curves
         /// <exclude />
+        /// 
+        [SupressImportIntoVM]
         private void XX()
         {
             Utils.Log(string.Format("Profile.XX started...", ""));
@@ -209,6 +211,8 @@ namespace CivilConnection
         /// Gets the elevations of the entities in the profile.
         /// </summary>
         /// <returns></returns>
+        /// 
+        [SupressImportIntoVM]
         public IList<double> GetEntitiesElevations()
         {
             Utils.Log(string.Format("Profile.GetEntitiesElevations Started...", ""));
@@ -312,6 +316,8 @@ namespace CivilConnection
         /// Gets the stations of the entities in the profile.
         /// </summary>
         /// <returns></returns>
+        /// 
+        [SupressImportIntoVM]
         public IList<double> GetEntitiesStations()
         {
             Utils.Log(string.Format("Profile.GetEntitiesStations Started...", ""));
