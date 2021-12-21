@@ -26,6 +26,7 @@ namespace CivilConnection.MEP
     /// <seealso cref="Revit.Elements.Element" />
     [DynamoServices.RegisterForTrace]
     [IsVisibleInDynamoLibrary(false)]
+    [SupressImportIntoVM]
     public class Connector : Revit.Elements.Element
     {
         #region PRIVATE PROPERTIES

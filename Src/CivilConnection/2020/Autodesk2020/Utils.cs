@@ -41,6 +41,7 @@ namespace CivilConnection
     /// Collection of utilities.
     /// </summary>
     [SupressImportIntoVM()]
+    [IsVisibleInDynamoLibrary(false)]
     internal class Utils
     {
         #region PRIVATE PROPERTIES
@@ -1851,6 +1852,7 @@ namespace CivilConnection
         /// Finalizes the Log file.
         /// </summary>
         [IsVisibleInDynamoLibrary(false)]
+        [SupressImportIntoVM()]
         public static void InitializeLog()
         {
             string path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "CivilConnection_temp.log");
@@ -2725,7 +2727,7 @@ namespace CivilConnection
 
                 Utils.Log(xmlPath);
 
-                string ns = "http://www.landxml.org/schema/LandXML-1.2";
+                //string ns = "http://www.landxml.org/schema/LandXML-1.2";
 
                 foreach (XmlElement se in xmlDoc.GetElementsByTagName("Surface")
                     .Cast<XmlElement>()

@@ -27,6 +27,19 @@
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2022|AnyCPU'">
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{28105AE1-A1CC-43AC-9EEA-28802E06A547}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CivilConnection</RootNamespace>
+    <AssemblyName>Autodesk2022</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
   <!--PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -49,6 +62,7 @@
   </PropertyGroup-->
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <ProjectGuid>{28105AE1-A1CC-43AC-9EEA-28802E06A547}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">
     <OutputPath>bin\2020\</OutputPath>
@@ -64,21 +78,32 @@
     <DocumentationFile>bin\2021\Autodesk2021.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == '2022|AnyCPU'">
+    <OutputPath>bin\2022\</OutputPath>
+    <DefineConstants>C2022</DefineConstants>
+    <Optimize>true</Optimize>
+    <DocumentationFile>bin\2022\Autodesk2022.xml</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
   <PropertyGroup>
     <C3DVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2020</C3DVersion>
     <C3DVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2021</C3DVersion>
+    <C3DVersion Condition="'$(Configuration)|$(Platform)' == '2022|AnyCPU'">2022</C3DVersion>
   </PropertyGroup>
   <PropertyGroup>
     <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2.3</DynCoreVersion>
     <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.6</DynCoreVersion>
+    <DynCoreVersion Condition="'$(Configuration)|$(Platform)' == '2022|AnyCPU'">2.12</DynCoreVersion>
   </PropertyGroup>
   <PropertyGroup>
     <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">2.3</DynRevitVersion>
     <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">2.6</DynRevitVersion>
+    <DynRevitVersion Condition="'$(Configuration)|$(Platform)' == '2022|AnyCPU'">2.12</DynRevitVersion>
   </PropertyGroup>
   <PropertyGroup>
     <DynRevitPath Condition="'$(Configuration)|$(Platform)' == '2020|AnyCPU'">..\..\..\..\..\..\..\Revit2020\Revit 2020</DynRevitPath>
     <DynRevitPath Condition="'$(Configuration)|$(Platform)' == '2021|AnyCPU'">C:\Program Files\Autodesk\Revit 2021</DynRevitPath>
+    <DynRevitPath Condition="'$(Configuration)|$(Platform)' == '2022|AnyCPU'">C:\Program Files\Autodesk\Revit 2022</DynRevitPath>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>CivilConnection</RootNamespace>
@@ -227,6 +252,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="pkg2022.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="pkg2021.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

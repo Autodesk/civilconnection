@@ -27,6 +27,7 @@ namespace CivilConnection
     /// </summary>
     /// <seealso cref="Autodesk.Revit.DB.IFailuresPreprocessor" />
     [IsVisibleInDynamoLibrary(false)]
+    [SupressImportIntoVM]
     public class RevitFailuresPreprocessor : IFailuresPreprocessor
     {
         /// <summary>

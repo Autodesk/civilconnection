@@ -128,7 +128,16 @@ namespace CivilConnection
 
             XmlDocument xmlDoc = new XmlDocument();
 
-            string folderPath = Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName);
+            string docPath = DocumentManager.Instance.CurrentDBDocument.PathName;
+
+            if (string.IsNullOrEmpty(docPath) || string.IsNullOrWhiteSpace(docPath))
+            {
+                // The Revit file has not being saved yet.
+                docPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), DocumentManager.Instance.CurrentDBDocument.Title);
+                Utils.Log(string.Format("The Revit Document has not yet been saved...", ""));
+            }
+
+            string folderPath = Path.GetDirectoryName(docPath);
 
             if (folderPath.StartsWith("BIM 360:"))
             {
@@ -165,7 +174,7 @@ namespace CivilConnection
             var name = xmlDoc.CreateAttribute("name");
             var user = xmlDoc.CreateAttribute("user");
             var date = xmlDoc.CreateAttribute("date");
-            project.SetAttribute("name", DocumentManager.Instance.CurrentDBDocument.PathName);
+            project.SetAttribute("name", docPath);
             project.SetAttribute("user", DocumentManager.Instance.CurrentUIApplication.Application.Username);
             project.SetAttribute("date", DateTime.Now.ToString());
 
@@ -543,7 +552,14 @@ namespace CivilConnection
 
             IList<Revit.Elements.Element> excluded = new List<Revit.Elements.Element>();
 
-            string folderPath = Path.GetDirectoryName(DocumentManager.Instance.CurrentDBDocument.PathName);
+            string docPath = DocumentManager.Instance.CurrentDBDocument.PathName;
+
+            if (string.IsNullOrWhiteSpace(docPath) || string.IsNullOrEmpty(docPath))
+            {
+                docPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), DocumentManager.Instance.CurrentDBDocument.Title);
+            }
+
+            string folderPath = Path.GetDirectoryName(docPath);
 
             if (folderPath.StartsWith("BIM 360:"))
             {
@@ -745,9 +761,10 @@ namespace CivilConnection
                     // for each group it was used one featureline
                     Featureline tempFeat = null;
 
-                    if (blr == null)  // the region index isnot valid anymore -> use the closest region
+                    if (blr == null)  // the region index is not valid anymore -> use the closest region
                     {
                         blr = bl.GetBaselineRegions().Where(x => x != null).OrderBy(r => Math.Abs(eleStation - 0.5 * (r.End + r.Start))).First(g => g.Stations.Count() > 0); // 1.1.0
+                        Utils.Log(string.Format("BaselineRegionIndex is no longer valid, the closest Region will be used instead.", ""));
                     }
 
                     // Scenario 1: the featureline is compatible with the parameters of the list and all the elements are in range
@@ -1996,7 +2013,6 @@ namespace CivilConnection
         /// </summary>
         /// <param name="e">The e.</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException">Element is neither an MEP curve nor a fitting.</exception>
         private static ConnectorManager GetConnectorManager(Element e)
         {
             Utils.Log(string.Format("UtilsObjectsLocation.GetConnectorManager started...", ""));
@@ -2752,6 +2768,115 @@ namespace CivilConnection
             }
         }
 
+
+#if C2022
+        /// <summary>
+        /// Returns a raw of parameters to be used for creation for a given parameter Type
+        /// </summary>
+        /// <param name="doc">The document.</param>
+        /// <param name="parameter">The parameter.</param>
+        /// <param name="type">The ForgeTypeId of the parameter</param>
+        /// <param name="visible">if set to <c>true</c> [visible].</param>
+        /// <param name="userModifiable">if set to <c>true</c> [user modifiable].</param>
+        /// <param name="cats">The cats.</param>
+        /// <param name="group">The group.</param>
+        /// <param name="inst">if set to <c>true</c> [inst].</param>
+        /// <returns></returns>
+        public static ExternalDefinition RawCreateProjectParameter(Document doc, ADSK_Parameter parameter, ForgeTypeId type, bool visible, bool userModifiable, CategorySet cats, BuiltInParameterGroup group, bool inst)
+        {
+            Utils.Log(string.Format("UtilsObjectsLocation.RawCreateProjectParameter {0} started...", parameter.Name));
+
+            ExternalDefinition def = null;
+
+            CategorySet cs2 = new CategorySet();
+
+            string oriFile = doc.Application.SharedParametersFilename;
+
+            string tempFile = Path.Combine(Path.GetTempPath(), "SharedParameters_CivilConnection.txt");
+
+            if (!File.Exists(tempFile))
+            {
+                using (File.Create(tempFile)) { }
+            }
+
+            doc.Application.SharedParametersFilename = tempFile;
+
+            string name = parameter.Name;
+
+            ExternalDefinitionCreationOptions edco = new ExternalDefinitionCreationOptions(name, type);
+
+            edco.GUID = new Guid(parameter.GUID);
+
+            edco.UserModifiable = userModifiable;
+
+            edco.Visible = visible;
+
+            def = doc.Application.OpenSharedParameterFile().Groups.Create("TemporaryDefintionGroup").Definitions.Create(edco) as ExternalDefinition;
+
+            BindingMap bm = doc.ParameterBindings;
+
+            foreach (Category cat in cats)
+            {
+                // Loop all Binding Definitions
+                // IMPORTANT NOTE: Categories.Size is ALWAYS 1 !?
+                // For multiple categories, there is really one
+                // pair per each category, even though the
+                // Definitions are the same...
+
+                DefinitionBindingMapIterator iter
+                    = doc.ParameterBindings.ForwardIterator();
+
+                bool found = true;
+
+                while (iter.MoveNext())
+                {
+                    if (iter.Key.Name == name)
+                    {
+                        ElementBinding eb = (ElementBinding)iter.Current;
+
+                        foreach (Category catEB in eb.Categories)
+                        {
+                            if (catEB.Id.IntegerValue.Equals(cat.Id.IntegerValue))
+                            {
+                                if (type == iter.Key.GetDataType())
+                                {
+                                    if (group == iter.Key.ParameterGroup)
+                                    {
+                                        found = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (found)
+                    cs2.Insert(cat);
+            }
+
+            if (cs2.Size > 0)
+            {
+                doc.Application.SharedParametersFilename = oriFile;
+
+                Autodesk.Revit.DB.Binding binding = doc.Application.Create.NewTypeBinding(cs2);
+
+                if (inst) binding = doc.Application.Create.NewInstanceBinding(cs2);
+
+                BindingMap map = (new UIApplication(doc.Application)).ActiveUIDocument.Document.ParameterBindings;
+
+                map.Insert(def, binding, group);
+            }
+
+            File.Delete(tempFile);
+
+            Utils.Log(string.Format("UtilsObjectsLocation.RawCreateProjectParameter completed.", ""));
+
+            return def;
+        }
+
+
+#else
         /// <summary>
         /// Returns a raw of parameters to be used for creation.
         /// </summary>
@@ -2857,6 +2982,7 @@ namespace CivilConnection
             return def;
         }
 
+#endif
         /// <summary>
         /// Checks the parameters.
         /// </summary>
@@ -2879,6 +3005,26 @@ namespace CivilConnection
                 RevitServices.Transactions.TransactionManager.Instance.EnsureInTransaction(doc);
 
                 ADSK_Parameters par = ADSK_Parameters.Instance;
+
+#if C2022
+                RawCreateProjectParameter(doc, par.Corridor, SpecTypeId.String.Text, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.BaselineIndex, SpecTypeId.Int.Integer, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.RegionIndex, SpecTypeId.Int.Integer, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.RegionRelative, SpecTypeId.Length, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.RegionNormalized, SpecTypeId.Number, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Code, SpecTypeId.String.Text, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Side, SpecTypeId.String.Text, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.X, SpecTypeId.Length, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Y, SpecTypeId.Length, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Z, SpecTypeId.Length, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Station, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Offset, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Elevation, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.AngleZ, SpecTypeId.Angle, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Update, SpecTypeId.Boolean.YesNo, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.Delete, SpecTypeId.Boolean.YesNo, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.MultiPoint, SpecTypeId.String.Text, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+#else
                 RawCreateProjectParameter(doc, par.Corridor, ParameterType.Text, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.BaselineIndex, ParameterType.Integer, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.RegionIndex, ParameterType.Integer, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
@@ -2896,7 +3042,7 @@ namespace CivilConnection
                 RawCreateProjectParameter(doc, par.Update, ParameterType.YesNo, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.Delete, ParameterType.YesNo, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.MultiPoint, ParameterType.Text, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
-
+#endif
 
                 cs.Clear();
 
@@ -2921,12 +3067,19 @@ namespace CivilConnection
                     }
                 }
 
+#if C2022
+                RawCreateProjectParameter(doc, par.EndStation, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.EndOffset, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.EndElevation, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.EndRegionRelative, SpecTypeId.Length, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+                RawCreateProjectParameter(doc, par.EndRegionNormalized, SpecTypeId.Number, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
+#else
                 RawCreateProjectParameter(doc, par.EndStation, ParameterType.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.EndOffset, ParameterType.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.EndElevation, ParameterType.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.EndRegionRelative, ParameterType.Length, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.EndRegionNormalized, ParameterType.Number, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
-
+#endif
                 RevitServices.Transactions.TransactionManager.Instance.TransactionTaskDone();
 
                 doc.Regenerate();
@@ -2998,16 +3151,16 @@ namespace CivilConnection
                 }
             }
 
-            #region DELETE
+#region DELETE
             if (deleteIds.Count > 0)
             {
                 RevitServices.Transactions.TransactionManager.Instance.EnsureInTransaction(doc);
                 doc.Delete(deleteIds);
                 RevitServices.Transactions.TransactionManager.Instance.TransactionTaskDone();
             }
-            #endregion
+#endregion
 
-            #region UPDATE
+#region UPDATE
             if (updateIds.Count > 0)
             {
                 RevitServices.Transactions.TransactionManager.Instance.EnsureInTransaction(doc);
@@ -3211,9 +3364,9 @@ namespace CivilConnection
                     }
                 }
             }
-            #endregion
+#endregion
 
-            #region CREATE
+#region CREATE
             if (createIds.Count > 0)
             {
                 foreach (int i in createIds)
@@ -3381,7 +3534,7 @@ namespace CivilConnection
                     created.Add(CreateFamilyInstance(familyType, fl, !useFeatureLine, station, offset, elevation, angleZ));
                 }
             }
-            #endregion
+#endregion
             // Read 
 
             //TODO: new data output to overwrite the original

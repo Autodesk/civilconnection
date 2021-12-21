@@ -186,6 +186,8 @@ namespace CivilConnection
         /// </summary>
         /// <param name="fl">The AeccLandFeatureline.</param>
         /// <param name="style">The style name.</param>
+        /// 
+        [SupressImportIntoVM]
         internal LandFeatureline(AeccLandFeatureLine fl, string style = "")
         {
             if (fl == null)
