@@ -23,7 +23,9 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 
 using IronPython.Hosting;
+#if !C2022
 using Microsoft.Scripting.Hosting;
+#endif
 using System.Reflection;
 using WF = System.Windows.Forms;
 using Autodesk.Windows;
@@ -40,6 +42,18 @@ namespace CivilPython
     {
         private void PythonConsole(bool cmdLine)
         {
+#if C2022
+            System.Windows.Forms.MessageBox.Show("Congratulations! CivilConnection can now be used.\n" + 
+                "You can now close this message.\n\n" +
+                "NOTE: The execution of Python scripts via this command has been disabled starting from Civil 3D 2022.\n" +
+                "IronPython 2.7 long term support has been discontinued.\n" +
+                "It is recommended to migrate your previous Python code to CPython 3.7.\n" +
+                "They can be used as modules in Python Script nodes in Dynamo for Civil 3D.\n"+
+                "Currenlty there are some limitations with CPython and\n" +
+                "an investigation on how to migrate CivilPython is undergoing.\n" + 
+                "Stay tuned for further updates.\n\n" +
+                "Previous releases of CivilPython can still be used.", "Autodesk CivilConnection");
+#else
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["Debug"] = true;
 
@@ -136,7 +150,7 @@ namespace CivilPython
                 string message = engine.GetService<ExceptionOperations>().FormatException(ex);
                 WF.MessageBox.Show(message);
             }
-
+#endif
             return;
         }
 
@@ -153,7 +167,7 @@ namespace CivilPython
         }
 
         [CommandMethod("-ReplaceSolid")]
-        public void PythonScriptCmdLine()
+        public void ReplaceSolid()
         {
             // PythonScript(true);
             Document doc = Application.DocumentManager.MdiActiveDocument;
@@ -508,6 +522,11 @@ namespace CivilPython
                             corridor.SetAttribute("Name", corr.Name);
 
                             path = path.Replace(".xml", string.Format("_{0}.xml", corr.Name));
+
+                            if (File.Exists(path))
+                            {
+                                File.Delete(path);
+                            }
 
                             XmlElement baselines = xmlDoc.CreateElement("Baselines");
                             corridor.AppendChild(baselines);
@@ -1133,6 +1152,127 @@ namespace CivilPython
         public void ExportSurfaceToXml()
         {
             string path = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "Surface.xml");
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            CivilDocument cdoc = CivilApplication.ActiveDocument;
+
+            short fd = (short)Application.GetSystemVariable("FILEDIA");
+
+            string surfHandle = "";
+
+            try
+            {
+                PromptStringOptions pso = new PromptStringOptions("\nEnter Surface Handle");
+                PromptResult resSurf = doc.Editor.GetString(pso);
+                surfHandle = resSurf.StringResult;
+            }
+            catch { }
+
+            Application.SetSystemVariable("FILEDIA", fd);
+
+            XmlDocument xmlDoc = new XmlDocument();
+
+            XmlElement docElement = xmlDoc.CreateElement("Document");
+            xmlDoc.AppendChild(docElement);
+
+            XmlElement surfaces = xmlDoc.CreateElement("Surfaces");
+            docElement.AppendChild(surfaces);
+
+            docElement.SetAttribute("Name", doc.Name);
+
+            using (doc.LockDocument())
+            {
+                using (Database db = doc.Database)
+                {
+                    using (Transaction t = db.TransactionManager.StartTransaction())
+                    {
+                        foreach (ObjectId oid in cdoc.GetSurfaceIds())
+                        {
+                            Autodesk.Civil.DatabaseServices.TinSurface surf = t.GetObject(oid, OpenMode.ForRead) as Autodesk.Civil.DatabaseServices.TinSurface;
+
+                            if (!string.IsNullOrWhiteSpace(surfHandle) && !string.IsNullOrEmpty(surfHandle))
+                            {
+                                if (surf.Handle.ToString() != surfHandle)
+                                {
+                                    continue;
+                                }
+                            }
+
+                            var visibleTriangles = surf.GetTriangles(false);
+
+                            XmlElement surface = xmlDoc.CreateElement("Surface");
+                            surfaces.AppendChild(surface);
+                            surface.SetAttribute("Name", surf.Name);
+
+                            XmlElement vertices = xmlDoc.CreateElement("Vertices");
+                            surface.AppendChild(vertices);
+
+                            Dictionary<Autodesk.Civil.DatabaseServices.TinSurfaceTriangle, List<string>> triangleDict = new Dictionary<Autodesk.Civil.DatabaseServices.TinSurfaceTriangle, List<string>>();
+
+                            for (int vCounter = 0; vCounter < surf.Vertices.Count; ++vCounter)
+                            {
+                                Autodesk.Civil.DatabaseServices.TinSurfaceVertex v = surf.Vertices.ElementAt(vCounter);
+
+                                Autodesk.AutoCAD.Geometry.Point3d p3d = v.Location;
+
+                                foreach (var tri in v.Triangles)
+                                {
+                                    if (!visibleTriangles.Contains(tri))
+                                    {
+                                        continue;
+                                    }
+
+                                    if (triangleDict.Keys.Contains(tri))
+                                    {
+                                        if (!triangleDict[tri].Contains(vCounter.ToString()) && triangleDict[tri].Count < 3)
+                                        {
+                                            triangleDict[tri].Add(vCounter.ToString());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        triangleDict.Add(tri, new List<string>() { vCounter.ToString() });
+                                    }
+                                }
+
+                                XmlElement vertex = xmlDoc.CreateElement("Vertex");
+                                vertices.AppendChild(vertex);
+                                vertex.SetAttribute("X", p3d.X.ToString());
+                                vertex.SetAttribute("Y", p3d.Y.ToString());
+                                vertex.SetAttribute("Z", p3d.Z.ToString());
+                                vertex.SetAttribute("id", vCounter.ToString());
+                            }
+
+                            XmlElement triangles = xmlDoc.CreateElement("Triangles");
+                            surface.AppendChild(triangles);
+
+                            foreach (var tri in triangleDict.Keys)
+                            {
+                                XmlElement tria = xmlDoc.CreateElement("Triangle");
+                                triangles.AppendChild(tria);
+
+                                for (int i = 0; i < 3; ++i)
+                                {
+                                    tria.SetAttribute(string.Format("V{0}", i), triangleDict[tri][i]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            xmlDoc.Save(path);
+        }
+
+        [CommandMethod("-ExportSurfaceTrianglesToXML")]
+        public void ExportSurfaceTrianglesToXML()
+        {
+            string path = Path.Combine(Environment.GetEnvironmentVariable("TMP", EnvironmentVariableTarget.User), "SurfaceTriangle.xml");
 
             if (File.Exists(path))
             {
