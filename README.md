@@ -28,7 +28,7 @@ Here are some features enabled by CivilPython:
 
 **IMPORTANT NOTE**
 The long term support for Python 2.7 has ended in 2020. As a policy, there cannot be new releases of tools leveraging Python 2.7, CivilPython is one of them. This means that the functionalities of CivilPython that are leverging IronPython 2.7 need to be migrated to use CPython that is based on Python 3.7. Currently, CPython does not yet offer a seamless experience and there are constructs that are not successfully recognized if compared with IronPython (e.g., it does not implement operators between objects, it forces to change syntax on existing code, etc.).
-Since nowdays it is possibel to have Dynamo for Civil 3D since release 2020, it has been decided to disable the functionalities connected to the Python scripting in CivilPython and only enbale those hidden commands that are used by CivilConnection.
+As Dynamo for Civil 3D is available since release 2020, it has been decided to disable the functionalities connected to the Python scripting in CivilPython and only enable the hidden commands that are used by CivilConnection.
 As a result, when calling "python" at the command line from Civil 3D 2022+ with the latest version of CivilPython you will get this message instead:
 
 "Congratulations! CivilConection can now be used.
@@ -41,7 +41,7 @@ They can be used as modules in Python Script nodes in Dynamo for Civil 3D.
 Currently there are some limitations with CPython and an investigation on how to migrate CivilPython is undergioing.
 Stay tuned for more updates."
 
-If there is an older versions of CivilPython installed on the machine it will continue to work.
+If there is an older version of CivilPython installed on the machine it will continue to work.
 
 ## How to use
 See ./Doc/Linear Structures Workflow Guide.pdf
