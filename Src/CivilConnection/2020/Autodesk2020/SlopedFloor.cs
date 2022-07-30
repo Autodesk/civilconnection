@@ -140,7 +140,7 @@ namespace CivilConnection
                 // Foundation Slabs require that the profile curves are planar and horizontal
                 // The normal must be orthogonal to the profile, hence the only possible normal is the Z Axis
 
-#if C2022
+#if (C2022 || C2023)
                 floor = Floor.Create(doc, new System.Collections.Generic.List<CurveLoop>() {cl}, floorType.Id, level.Id);
 #else
                 floor = doc.Create.NewFoundationSlab(curveArray, floorType, level, structural, XYZ.BasisZ);
@@ -148,7 +148,7 @@ namespace CivilConnection
             }
             else
             {
-#if C2022
+#if (C2022 || C2023)
                 floor = Floor.Create(doc, new System.Collections.Generic.List<CurveLoop>() { cl }, floorType.Id, level.Id, structural, slopeArrow, slope);
 #else
                 // we assume the floor is not structural here, this may be a bad assumption

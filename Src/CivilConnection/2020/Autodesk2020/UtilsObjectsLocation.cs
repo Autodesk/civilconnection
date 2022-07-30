@@ -2769,7 +2769,7 @@ namespace CivilConnection
         }
 
 
-#if C2022
+#if (C2022 || C2023)
         /// <summary>
         /// Returns a raw of parameters to be used for creation for a given parameter Type
         /// </summary>
@@ -3006,7 +3006,7 @@ namespace CivilConnection
 
                 ADSK_Parameters par = ADSK_Parameters.Instance;
 
-#if C2022
+#if (C2022 || C2023)
                 RawCreateProjectParameter(doc, par.Corridor, SpecTypeId.String.Text, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.BaselineIndex, SpecTypeId.Int.Integer, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.RegionIndex, SpecTypeId.Int.Integer, true, false, cs, BuiltInParameterGroup.PG_DATA, true);
@@ -3067,7 +3067,7 @@ namespace CivilConnection
                     }
                 }
 
-#if C2022
+#if (C2022 || C2023)
                 RawCreateProjectParameter(doc, par.EndStation, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.EndOffset, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);
                 RawCreateProjectParameter(doc, par.EndElevation, SpecTypeId.Length, true, true, cs, BuiltInParameterGroup.PG_DATA, true);

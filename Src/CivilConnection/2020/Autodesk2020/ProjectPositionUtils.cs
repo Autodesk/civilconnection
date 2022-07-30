@@ -21,7 +21,7 @@ using System;
 namespace CivilConnection
 {
     /// <summary>
-    /// Static Obejct that returns the ProjectPosition of the Revti Document
+    /// Static Obejct that returns the ProjectPosition of the Revit Document
     /// </summary>
     [IsVisibleInDynamoLibrary(false)]
     class ProjectPositionUtils
