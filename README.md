@@ -53,6 +53,7 @@ The release numbers for the package correspond to the major release numbers of C
 
 **Note that CivilConnection and Civil 3D with different release numbers are not compatible.**
 
+* Civil 3D and Revit 2023 - CivilConnection 2023 - Autodesk2023.dll
 * Civil 3D and Revit 2022 - CivilConnection 2022 - Autodesk2022.dll
 * Civil 3D and Revit 2021 - CivilConnection 2021 - Autodesk2021.dll
 * Civil 3D and Revit 2020 - CivilConnection 2020 - Autodesk2020.dll
